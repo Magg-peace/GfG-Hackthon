@@ -344,7 +344,10 @@ def _draw_pdf_table(pdf: "FPDF", data: list[dict], max_rows: int = 50) -> None:
     # Data rows
     pdf.set_font("Helvetica", "", 7)
     for i, row in enumerate(data[:max_rows]):
-        pdf.set_fill_color(248, 250, 252 if i % 2 == 0 else 241, 245, 249)
+        if i % 2 == 0:
+            pdf.set_fill_color(248, 250, 252)
+        else:
+            pdf.set_fill_color(241, 245, 249)
         pdf.set_text_color(30, 41, 59)
         for col in cols:
             val = str(row.get(col, ""))[:20]

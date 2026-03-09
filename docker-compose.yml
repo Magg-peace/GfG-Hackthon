@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bi_dashboard_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bi_dashboard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bi_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:
