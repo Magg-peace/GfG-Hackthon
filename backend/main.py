@@ -1,19 +1,61 @@
-"""FastAPI backend for the Conversational BI Dashboard."""
+"""FastAPI backend for the Conversational BI Dashboard.
 
+Data flow:
+  CSV upload → PostgreSQL (or SQLite fallback) table
+  User query  → LangGraph agent (Ollama/Gemini SQL gen → PG execute → results table → charts)
+  Export      → PDF (fpdf2 + matplotlib) or Excel (openpyxl)
+"""
+
+import io
+import re
 import uuid
 import traceback
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from database import (
-    get_schema,
-    execute_query,
-    import_csv,
+    get_schema as sqlite_get_schema,
+    execute_query as sqlite_execute_query,
+    import_csv as sqlite_import_csv,
     seed_sample_data,
     load_insurance_dataset,
 )
-from llm import generate_dashboard, generate_followup
+from agents import run_query_pipeline, run_followup_pipeline
+from export import export_to_pdf, export_to_excel
+
+try:
+    from pg_database import (
+        is_available as pg_available,
+        import_csv_to_pg,
+        get_pg_schema,
+        execute_pg_query,
+        store_query_results,
+        get_results_tables,
+        seed_pg_sample_data,
+    )
+    _PG_MODULE_OK = True
+except ImportError:
+    _PG_MODULE_OK = False
+
+
+def _use_postgres() -> bool:
+    return _PG_MODULE_OK and pg_available()
+
+
+def get_schema(session_id: str | None = None) -> str:
+    if _use_postgres():
+        return get_pg_schema(session_id)
+    return sqlite_get_schema(session_id)
+
+
+def execute_query(sql: str, session_id: str | None = None) -> list[dict]:
+    if _use_postgres():
+        return execute_pg_query(sql, session_id)
+    return sqlite_execute_query(sql, session_id)
+
+
 from ml_serve import (
     predict_settlement_ratio,
     classify_risk_tier,
@@ -22,11 +64,17 @@ from ml_serve import (
     get_all_predictions,
 )
 
-# Seed sample data and load insurance dataset on startup
+# ── App startup ────────────────────────────────────────────────────────────────
 seed_sample_data()
 load_insurance_dataset()
 
-app = FastAPI(title="BI Dashboard API", version="1.0.0")
+if _PG_MODULE_OK:
+    try:
+        seed_pg_sample_data()
+    except Exception as _pg_seed_err:
+        print(f"[WARN] PostgreSQL seed failed (is PG running?): {_pg_seed_err}")
+
+app = FastAPI(title="BI Dashboard API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,6 +100,14 @@ class FollowUpRequest(BaseModel):
     previous_sql: str
 
 
+class ExportRequest(BaseModel):
+    session_id: str | None = None
+    query: str = ""
+    summary: str = ""
+    charts: list[dict] = []
+    format: str = "pdf"   # "pdf" or "excel"
+
+
 class PredictionRequest(BaseModel):
     insurer: str
     year: int = 2024
@@ -68,7 +124,13 @@ class PredictionRequest(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    postgres_ok = _use_postgres()
+    try:
+        from ollama_llm import is_ollama_available
+        ollama_ok = is_ollama_available()
+    except Exception:
+        ollama_ok = False
+    return {"status": "ok", "postgres": postgres_ok, "ollama": ollama_ok}
 
 
 @app.get("/api/schema")
@@ -76,14 +138,14 @@ def get_db_schema(session_id: str | None = None):
     """Return the database schema for the current session."""
     try:
         schema = get_schema(session_id)
-        return {"schema": schema}
+        return {"schema": schema, "postgres": _use_postgres()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/query")
 async def query_dashboard(req: QueryRequest):
-    """Convert natural language to a dashboard with charts."""
+    """Convert a natural language question into SQL → execute → store results → return charts."""
     try:
         session_id = req.session_id
         schema = get_schema(session_id)
@@ -94,39 +156,21 @@ async def query_dashboard(req: QueryRequest):
                 detail="No data available. Please upload a CSV file or use the default dataset.",
             )
 
-        # Get conversation history for context
         history = []
         if session_id and session_id in sessions:
             history = sessions[session_id].get("history", [])
 
-        # Generate dashboard config from LLM
-        llm_result = await generate_dashboard(req.query, schema, history)
+        use_pg = _use_postgres()
 
-        if llm_result.get("error"):
-            return {
-                "success": False,
-                "error": llm_result["error"],
-                "summary": llm_result.get("summary", ""),
-                "charts": [],
-            }
+        # Run the LangGraph agent pipeline
+        state = await run_query_pipeline(
+            query=req.query,
+            schema=schema,
+            session_id=session_id or "default",
+            use_postgres=use_pg,
+            conversation_history=history,
+        )
 
-        # Execute each chart's SQL and attach data
-        charts_with_data = []
-        for chart_config in llm_result.get("charts", []):
-            sql = chart_config.get("sql", "")
-            try:
-                data = execute_query(sql, session_id)
-                chart_config["data"] = data
-                chart_config["sql_executed"] = sql
-                chart_config["row_count"] = len(data)
-                charts_with_data.append(chart_config)
-            except Exception as e:
-                chart_config["data"] = []
-                chart_config["error"] = f"SQL Error: {str(e)}"
-                chart_config["sql_executed"] = sql
-                charts_with_data.append(chart_config)
-
-        # Store in conversation history
         if not session_id:
             session_id = str(uuid.uuid4())
         if session_id not in sessions:
@@ -134,17 +178,28 @@ async def query_dashboard(req: QueryRequest):
 
         sessions[session_id]["history"].append({
             "query": req.query,
-            "response_summary": llm_result.get("summary", ""),
-            "sql": [c.get("sql", "") for c in charts_with_data],
+            "response_summary": state.get("summary", ""),
+            "sql": state.get("generated_sql", ""),
         })
+
+        if state.get("error") and not state.get("charts"):
+            return {
+                "success": False,
+                "session_id": session_id,
+                "error": state["error"],
+                "summary": state.get("summary", ""),
+                "charts": [],
+            }
 
         return {
             "success": True,
             "session_id": session_id,
-            "summary": llm_result.get("summary", ""),
-            "thinking": llm_result.get("thinking", ""),
-            "assumptions": llm_result.get("assumptions", []),
-            "charts": charts_with_data,
+            "summary": state.get("summary", ""),
+            "thinking": state.get("thinking", ""),
+            "assumptions": state.get("assumptions", []),
+            "charts": state.get("charts", []),
+            "results_table": state.get("results_table_name", ""),
+            "postgres": use_pg,
         }
 
     except HTTPException:
@@ -159,48 +214,42 @@ async def followup_query(req: FollowUpRequest):
     """Handle follow-up questions that refine previous results."""
     try:
         schema = get_schema(req.session_id)
-        llm_result = await generate_followup(
-            req.query, req.previous_query, req.previous_sql, schema
+        use_pg = _use_postgres()
+
+        state = await run_followup_pipeline(
+            followup=req.query,
+            previous_query=req.previous_query,
+            previous_sql=req.previous_sql,
+            schema=schema,
+            session_id=req.session_id,
+            use_postgres=use_pg,
         )
 
-        if llm_result.get("error"):
-            return {
-                "success": False,
-                "error": llm_result["error"],
-                "summary": llm_result.get("summary", ""),
-                "charts": [],
-            }
-
-        charts_with_data = []
-        for chart_config in llm_result.get("charts", []):
-            sql = chart_config.get("sql", "")
-            try:
-                data = execute_query(sql, req.session_id)
-                chart_config["data"] = data
-                chart_config["sql_executed"] = sql
-                chart_config["row_count"] = len(data)
-                charts_with_data.append(chart_config)
-            except Exception as e:
-                chart_config["data"] = []
-                chart_config["error"] = f"SQL Error: {str(e)}"
-                chart_config["sql_executed"] = sql
-                charts_with_data.append(chart_config)
-
-        # Update conversation history
         if req.session_id in sessions:
             sessions[req.session_id]["history"].append({
                 "query": req.query,
-                "response_summary": llm_result.get("summary", ""),
-                "sql": [c.get("sql", "") for c in charts_with_data],
+                "response_summary": state.get("summary", ""),
+                "sql": state.get("generated_sql", ""),
             })
+
+        if state.get("error") and not state.get("charts"):
+            return {
+                "success": False,
+                "session_id": req.session_id,
+                "error": state["error"],
+                "summary": state.get("summary", ""),
+                "charts": [],
+            }
 
         return {
             "success": True,
             "session_id": req.session_id,
-            "summary": llm_result.get("summary", ""),
-            "thinking": llm_result.get("thinking", ""),
-            "assumptions": llm_result.get("assumptions", []),
-            "charts": charts_with_data,
+            "summary": state.get("summary", ""),
+            "thinking": state.get("thinking", ""),
+            "assumptions": state.get("assumptions", []),
+            "charts": state.get("charts", []),
+            "results_table": state.get("results_table_name", ""),
+            "postgres": use_pg,
         }
 
     except Exception as e:
@@ -210,30 +259,39 @@ async def followup_query(req: FollowUpRequest):
 
 @app.post("/api/upload")
 async def upload_csv(file: UploadFile = File(...)):
-    """Upload a CSV file and create a new session database."""
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are supported.")
+    """Upload a CSV file and store it in PostgreSQL (or SQLite fallback)."""
+    fname = file.filename or ""
+    if not fname.lower().endswith((".csv", ".tsv", ".txt")):
+        raise HTTPException(status_code=400, detail="Only CSV/TSV files are supported.")
 
-    if file.size and file.size > 50 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size must be under 50MB.")
+    if file.size and file.size > 100 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be under 100 MB.")
 
     try:
         content = await file.read()
         session_id = str(uuid.uuid4())
-        result = import_csv(content, file.filename, session_id)
 
-        sessions[session_id] = {"history": [], "uploaded_file": file.filename}
+        if _use_postgres():
+            result = import_csv_to_pg(content, fname, session_id)
+        else:
+            result = sqlite_import_csv(content, fname, session_id)
 
+        sessions[session_id] = {
+            "history": [],
+            "uploaded_file": fname,
+            "table_name": result["table_name"],
+            "postgres": _use_postgres(),
+        }
         schema = get_schema(session_id)
-
         return {
             "success": True,
             "session_id": session_id,
-            "filename": file.filename,
+            "filename": fname,
             "table_name": result["table_name"],
             "columns": result["columns"],
             "row_count": result["row_count"],
             "schema": schema,
+            "postgres": _use_postgres(),
         }
     except Exception as e:
         traceback.print_exc()
@@ -245,7 +303,8 @@ def get_suggestions(session_id: str | None = None):
     """Return suggested queries based on the current schema."""
     try:
         schema = get_schema(session_id)
-        if "insurance_claims" in schema.lower():
+        schema_lower = schema.lower()
+        if "insurance" in schema_lower or "claims" in schema_lower:
             return {
                 "suggestions": [
                     "Show me the top 10 insurers by claims settlement ratio in 2021-22",
@@ -258,7 +317,7 @@ def get_suggestions(session_id: str | None = None):
                     "Which insurer handles the most claim amount? Show top 5",
                 ]
             }
-        elif "sales" in schema.lower():
+        elif "sales" in schema_lower:
             return {
                 "suggestions": [
                     "Show me monthly sales revenue for 2024 broken down by region",
@@ -272,16 +331,104 @@ def get_suggestions(session_id: str | None = None):
                 ]
             }
         else:
-            return {
-                "suggestions": [
-                    "Show me an overview of the data",
-                    "What are the top values in each column?",
-                    "Show the distribution of numeric values",
-                    "Show trends over time if there are date columns",
-                ]
-            }
+            suggestions = [
+                "Show me a summary overview of this dataset",
+                "What are the top values by the main numeric column?",
+                "Show the distribution of data by category",
+            ]
+            if any(k in schema_lower for k in ("date", "time", "year", "month")):
+                suggestions.append("Show trends over time")
+            return {"suggestions": suggestions}
     except Exception:
         return {"suggestions": []}
+
+
+# ── Export endpoints ───────────────────────────────────────────────────────────
+
+@app.post("/api/export")
+async def export_data(req: ExportRequest):
+    """Export dashboard as a PDF or Excel file with charts + filtered data."""
+    fmt = req.format.lower()
+    if fmt not in ("pdf", "excel", "xlsx"):
+        raise HTTPException(status_code=400, detail="format must be 'pdf' or 'excel'.")
+    try:
+        if fmt == "pdf":
+            file_bytes = export_to_pdf(
+                charts=req.charts,
+                summary=req.summary,
+                query=req.query,
+                session_id=req.session_id or "",
+            )
+            filename = f"bi_report_{uuid.uuid4().hex[:8]}.pdf"
+            media_type = "application/pdf"
+        else:
+            file_bytes = export_to_excel(
+                charts=req.charts,
+                summary=req.summary,
+                query=req.query,
+                session_id=req.session_id or "",
+            )
+            filename = f"bi_report_{uuid.uuid4().hex[:8]}.xlsx"
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        return StreamingResponse(
+            io.BytesIO(file_bytes),
+            media_type=media_type,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except ImportError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Results tables ─────────────────────────────────────────────────────────────
+
+@app.get("/api/results/{session_id}")
+def list_results_tables(session_id: str):
+    """List all stored results tables for a session."""
+    try:
+        if _use_postgres():
+            tables = get_results_tables(session_id)
+        else:
+            from database import get_connection
+            conn = get_connection(session_id)
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'results_%';")
+            tables = [r[0] for r in cur.fetchall()]
+            conn.close()
+        return {"session_id": session_id, "results_tables": tables}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/results/{session_id}/{table_name}")
+def get_result_rows(session_id: str, table_name: str):
+    """Fetch all rows from a named results table."""
+    if not re.match(r"^results_[a-z0-9_]+$", table_name):
+        raise HTTPException(status_code=400, detail="Invalid table name.")
+    try:
+        rows = execute_query(f'SELECT * FROM "{table_name}" LIMIT 1000', session_id)
+        return {"table_name": table_name, "rows": rows, "count": len(rows)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── LLM status ─────────────────────────────────────────────────────────────────
+
+@app.get("/api/llm/status")
+def llm_status():
+    try:
+        from ollama_llm import get_available_models, is_ollama_available, OLLAMA_BASE_URL
+        return {
+            "ollama_available": is_ollama_available(),
+            "ollama_url": OLLAMA_BASE_URL,
+            "available_models": get_available_models(),
+            "gemini_configured": bool(__import__("os").getenv("GEMINI_API_KEY")),
+        }
+    except Exception as e:
+        return {"ollama_available": False, "error": str(e)}
 
 
 # ── ML Model Endpoints ──────────────────────────────────────
@@ -344,4 +491,4 @@ def ml_overview():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
