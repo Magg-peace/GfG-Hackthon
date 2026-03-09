@@ -109,7 +109,10 @@ async def sql_generator_node(state: AgentState) -> dict:
     else:
         augmented_query = query
 
-    result = await llm.generate_sql(augmented_query, schema)
+    result = await llm.generate_sql(
+        augmented_query, schema,
+        dialect="PostgreSQL" if state.get("use_postgres") else "SQLite",
+    )
 
     return {
         "generated_sql": result.get("sql", ""),
@@ -290,7 +293,8 @@ async def run_followup_pipeline(
 ) -> AgentState:
     """Run a follow-up query through the pipeline."""
     # Generate modified SQL via the LLM
-    result = await llm.generate_followup_sql(followup, previous_query, previous_sql, schema)
+    dialect = "PostgreSQL" if use_postgres else "SQLite"
+    result = await llm.generate_followup_sql(followup, previous_query, previous_sql, schema, dialect=dialect)
 
     if result.get("error"):
         empty: AgentState = {

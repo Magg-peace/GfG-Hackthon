@@ -96,7 +96,16 @@ def import_csv(file_content: bytes, filename: str, session_id: str) -> dict:
     if not table_name or table_name[0].isdigit():
         table_name = "data_" + table_name
 
-    decoded = file_content.decode("utf-8-sig")
+    # Try multiple encodings to handle non-UTF-8 files (e.g. Windows-1252)
+    decoded = None
+    for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+        try:
+            decoded = file_content.decode(enc)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+    if decoded is None:
+        decoded = file_content.decode("utf-8", errors="replace")
     reader = csv.DictReader(io.StringIO(decoded))
     rows = list(reader)
     if not rows:

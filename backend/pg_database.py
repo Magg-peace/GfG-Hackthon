@@ -114,7 +114,16 @@ def import_csv_to_pg(content: bytes, filename: str, session_id: str) -> dict:
     base = Path(filename).stem
     table_name = make_upload_table(session_id, base)
 
-    decoded = content.decode("utf-8-sig")
+    # Try multiple encodings to handle non-UTF-8 files (e.g. Windows-1252)
+    decoded = None
+    for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+        try:
+            decoded = content.decode(enc)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+    if decoded is None:
+        decoded = content.decode("utf-8", errors="replace")
     reader = csv.DictReader(io.StringIO(decoded))
     rows = list(reader)
     if not rows:

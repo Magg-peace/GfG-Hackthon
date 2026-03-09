@@ -64,7 +64,7 @@ def get_available_models() -> list[str]:
         _available_models = [m["name"] for m in data.get("models", [])]
         return _available_models
     except Exception:
-        _available_models = []
+        _available_models = None  # Don't cache failures so next call retries
         return []
 
 
@@ -158,18 +158,19 @@ def _extract_json(text: str) -> dict:
 
 # ── System prompts ─────────────────────────────────────────────────────────────
 
-_SQL_SYSTEM = """You are an expert SQL analyst. Given a PostgreSQL database schema and a user question,
-generate a single PostgreSQL SELECT query that answers the question accurately.
+_SQL_SYSTEM = """You are an expert SQL analyst. Given a {dialect} database schema and a user question,
+generate a single {dialect} SELECT query that answers the question accurately.
 
 RULES:
 - Generate ONLY a SELECT or WITH/SELECT query. Never INSERT, UPDATE, DELETE, DROP, or ALTER.
-- Use standard PostgreSQL syntax (double quotes for identifiers if needed).
-- For date grouping use TO_CHAR(date_col, 'YYYY-MM') or DATE_TRUNC.
+- Use standard {dialect} syntax.
+- If {dialect} is PostgreSQL, use double-quoted identifiers and TO_CHAR / DATE_TRUNC for dates.
+- If {dialect} is SQLite, use double-quoted identifiers and strftime for dates. Do NOT use TO_CHAR or DATE_TRUNC.
 - Always alias computed columns with descriptive names.
 - Limit results to 500 rows maximum.
 - If the question cannot be answered from the schema, set "error" to a clear explanation.
 
-DATABASE SCHEMA (PostgreSQL):
+DATABASE SCHEMA ({dialect}):
 {schema}
 
 Respond ONLY with valid JSON (no markdown fences):
@@ -222,13 +223,13 @@ Respond ONLY with valid JSON (no markdown fences):
 _FOLLOWUP_SYSTEM = """You are a BI assistant continuing a data conversation.
 
 Previous query: {previous_query}
-Previous SQL (PostgreSQL): {previous_sql}
+Previous SQL ({dialect}): {previous_sql}
 Current user request: {followup}
 
-DATABASE SCHEMA (PostgreSQL):
+DATABASE SCHEMA ({dialect}):
 {schema}
 
-Modify or extend the previous SQL to address the new request. Keep the same JSON format.
+Modify or extend the previous SQL to address the new request. Use {dialect} syntax.
 Respond ONLY with valid JSON (no markdown fences):
 {{
   "thinking": "...",
@@ -241,12 +242,12 @@ Respond ONLY with valid JSON (no markdown fences):
 
 # ── Public API: SQL generation ─────────────────────────────────────────────────
 
-async def generate_sql(query: str, schema: str) -> dict:
-    """Generate a PostgreSQL SELECT query for *query* given *schema*.
+async def generate_sql(query: str, schema: str, dialect: str = "PostgreSQL") -> dict:
+    """Generate a SELECT query for *query* given *schema*.
     
     Returns: {"thinking": ..., "sql": ..., "error": ...}
     """
-    system = _SQL_SYSTEM.format(schema=schema)
+    system = _SQL_SYSTEM.format(schema=schema, dialect=dialect)
     model = _pick_model(_SQL_MODEL_CHAIN, OLLAMA_SQL_MODEL)
 
     if model:
@@ -260,7 +261,10 @@ async def generate_sql(query: str, schema: str) -> dict:
             pass
 
     # Gemini fallback
-    return await _gemini_generate_sql(query, schema)
+    try:
+        return await _gemini_generate_sql(query, schema, dialect)
+    except Exception as exc:
+        return {"thinking": "", "sql": "", "error": f"No LLM available. Ollama has no matching models and Gemini is not configured. Please run 'ollama pull qwen2.5-coder' or set GEMINI_API_KEY in .env. Detail: {exc}"}
 
 
 # ── Public API: chart config generation ───────────────────────────────────────
@@ -303,7 +307,10 @@ async def generate_charts(
             pass
 
     # Gemini fallback
-    return await _gemini_generate_charts(query, schema, sql, result_columns, sample_rows)
+    try:
+        return await _gemini_generate_charts(query, schema, sql, result_columns, sample_rows)
+    except Exception as exc:
+        return {"thinking": "", "charts": [], "summary": "", "assumptions": [], "error": f"No LLM available for chart generation. Detail: {exc}"}
 
 
 # ── Public API: follow-up ──────────────────────────────────────────────────────
@@ -313,6 +320,7 @@ async def generate_followup_sql(
     previous_query: str,
     previous_sql: str,
     schema: str,
+    dialect: str = "PostgreSQL",
 ) -> dict:
     """Generate SQL for a follow-up question.
 
@@ -323,6 +331,7 @@ async def generate_followup_sql(
         previous_sql=previous_sql,
         followup=followup,
         schema=schema,
+        dialect=dialect,
     )
     model = _pick_model(_SQL_MODEL_CHAIN, OLLAMA_SQL_MODEL)
 
@@ -335,7 +344,10 @@ async def generate_followup_sql(
         except Exception:
             pass
 
-    return await _gemini_followup(followup, previous_query, previous_sql, schema)
+    try:
+        return await _gemini_followup(followup, previous_query, previous_sql, schema)
+    except Exception as exc:
+        return {"thinking": "", "charts": [], "summary": "", "assumptions": [], "error": f"No LLM available. Detail: {exc}"}
 
 
 # ── Gemini fallback implementations ───────────────────────────────────────────
@@ -348,13 +360,13 @@ def _get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-async def _gemini_generate_sql(query: str, schema: str) -> dict:
+async def _gemini_generate_sql(query: str, schema: str, dialect: str = "PostgreSQL") -> dict:
     """Use Gemini to generate SQL when Ollama is unavailable."""
     from google import genai
     client = _get_gemini_client()
     prompt = (
-        f"Database schema (PostgreSQL):\n{schema}\n\n"
-        f"Generate a PostgreSQL SELECT query for: {query}\n\n"
+        f"Database schema ({dialect}):\n{schema}\n\n"
+        f"Generate a {dialect} SELECT query for: {query}\n\n"
         "Respond ONLY with JSON: {\"thinking\":\"...\",\"sql\":\"SELECT...\",\"error\":null}"
     )
     resp = client.models.generate_content(
