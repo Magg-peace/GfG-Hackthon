@@ -341,3 +341,34 @@ def seed_sample_data():
     conn.commit()
     conn.close()
     print("Sample business data seeded successfully.")
+
+
+def load_insurance_dataset():
+    """Load the India Life Insurance Claims CSV into the default SQLite database."""
+    import pandas as pd
+
+    csv_path = Path(__file__).parent.parent / "Dataset" / "1. India Life Insurance Claims" / "India Life Insurance Claims.csv"
+    if not csv_path.exists():
+        print("Insurance dataset not found, skipping.")
+        return
+
+    conn = sqlite3.connect(str(get_db_path()))
+    cursor = conn.cursor()
+
+    # Check if already loaded
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='insurance_claims';")
+    if cursor.fetchone():
+        conn.close()
+        return
+
+    df = pd.read_csv(str(csv_path), encoding="latin-1")
+    df = df.dropna(subset=["life_insurer", "year"])
+
+    # Clean column names for SQL friendliness
+    df.columns = [c.strip().replace(" ", "_") for c in df.columns]
+
+    df.to_sql("insurance_claims", conn, if_exists="replace", index=False)
+
+    conn.commit()
+    conn.close()
+    print(f"Insurance claims dataset loaded: {len(df)} rows.")
