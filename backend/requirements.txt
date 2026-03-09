@@ -4,3 +4,5 @@ python-multipart
 google-genai
 pandas
 python-dotenv
+scikit-learn
+joblib
