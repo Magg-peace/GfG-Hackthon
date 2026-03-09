@@ -1,8 +1,33 @@
+# ── Web framework ──────────────────────────────────────────────────────────────
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
+
+# ── Database ───────────────────────────────────────────────────────────────────
+psycopg2-binary          # PostgreSQL driver
+sqlalchemy               # ORM / helpers (optional, used by advanced tooling)
+
+# ── LLM – Cloud fallback ───────────────────────────────────────────────────────
 google-genai
+
+# ── LLM – Ollama client (local DeepSeek-V3 / Qwen3 / Llama 4) ─────────────────
+httpx                    # async HTTP – also used by Ollama REST client
+
+# ── Agent framework ────────────────────────────────────────────────────────────
+langgraph                # LangGraph stateful pipeline
+langchain-core           # required by langgraph
+
+# ── Export: PDF ────────────────────────────────────────────────────────────────
+fpdf2                    # PDF generation
+matplotlib               # chart image rendering inside PDF
+
+# ── Export: Excel ──────────────────────────────────────────────────────────────
+openpyxl                 # Excel (.xlsx) with native charts
+
+# ── Data handling ──────────────────────────────────────────────────────────────
 pandas
 python-dotenv
+
+# ── ML models (existing) ───────────────────────────────────────────────────────
 scikit-learn
 joblib
