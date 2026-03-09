@@ -1,16 +1,45 @@
 "use client";
 
-import React from "react";
-import { ChartConfig } from "@/lib/api";
+import React, { useState } from "react";
+import { ChartConfig, exportDashboard } from "@/lib/api";
 import ChartRenderer from "./ChartRenderer";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Download, FileText, Sheet, Loader2 } from "lucide-react";
 
 interface DashboardProps {
   charts: ChartConfig[];
   summary?: string;
+  sessionId?: string | null;
+  lastQuery?: string;
 }
 
-export default function Dashboard({ charts, summary }: DashboardProps) {
+export default function Dashboard({ charts, summary, sessionId, lastQuery }: DashboardProps) {
+  const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
+
+  const handleExport = async (format: "pdf" | "excel") => {
+    setExporting(format);
+    try {
+      const blob = await exportDashboard({
+        session_id: sessionId,
+        query: lastQuery || "",
+        summary: summary || "",
+        charts,
+        format,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = format === "pdf" ? "bi_report.pdf" : "bi_report.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      alert(`Export failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setExporting(null);
+    }
+  };
+
   if (!charts.length) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
@@ -30,12 +59,43 @@ export default function Dashboard({ charts, summary }: DashboardProps) {
 
   return (
     <div className="h-full overflow-y-auto px-6 py-6">
-      {/* Summary Banner */}
-      {summary && (
-        <div className="mb-6 bg-brand-600/10 border border-brand-500/20 rounded-xl px-5 py-4 animate-fade-in">
-          <p className="text-sm text-brand-200">{summary}</p>
+      {/* Summary Banner + Export buttons */}
+      <div className="mb-6 flex items-start gap-4">
+        {summary && (
+          <div className="flex-1 bg-brand-600/10 border border-brand-500/20 rounded-xl px-5 py-4 animate-fade-in">
+            <p className="text-sm text-brand-200">{summary}</p>
+          </div>
+        )}
+        {/* Export controls */}
+        <div className="flex gap-2 flex-shrink-0">
+          <button
+            onClick={() => handleExport("pdf")}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-3 py-2 bg-rose-700/20 hover:bg-rose-700/40 border border-rose-600/30 text-rose-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+            title="Export as PDF"
+          >
+            {exporting === "pdf" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileText className="w-3.5 h-3.5" />
+            )}
+            PDF
+          </button>
+          <button
+            onClick={() => handleExport("excel")}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-700/20 hover:bg-emerald-700/40 border border-emerald-600/30 text-emerald-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+            title="Export as Excel"
+          >
+            {exporting === "excel" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
+            Excel
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -55,3 +115,4 @@ export default function Dashboard({ charts, summary }: DashboardProps) {
     </div>
   );
 }
+

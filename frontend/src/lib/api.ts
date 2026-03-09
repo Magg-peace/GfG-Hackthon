@@ -188,3 +188,47 @@ export async function mlOverview(): Promise<{ success: boolean; predictions: MLO
   if (!res.ok) throw new Error("Failed to fetch overview");
   return res.json();
 }
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+
+export async function exportDashboard(payload: {
+  session_id?: string | null;
+  query?: string;
+  summary?: string;
+  charts: ChartConfig[];
+  format: "pdf" | "excel";
+}): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Export failed");
+  }
+  return res.blob();
+}
+
+// ── LLM / System status ────────────────────────────────────────────────────────
+
+export interface LLMStatus {
+  ollama_available: boolean;
+  ollama_url?: string;
+  available_models?: string[];
+  gemini_configured?: boolean;
+  error?: string;
+}
+
+export async function getLLMStatus(): Promise<LLMStatus> {
+  const res = await fetch(`${API_BASE}/llm/status`);
+  if (!res.ok) return { ollama_available: false };
+  return res.json();
+}
+
+export async function getHealth(): Promise<{ status: string; postgres: boolean; ollama: boolean }> {
+  const res = await fetch(`${API_BASE}/health`);
+  if (!res.ok) return { status: "error", postgres: false, ollama: false };
+  return res.json();
+}
+
