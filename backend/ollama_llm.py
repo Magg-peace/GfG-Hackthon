@@ -21,12 +21,31 @@ OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "120"))
 OLLAMA_SQL_MODEL = os.getenv("OLLAMA_SQL_MODEL", "")
 OLLAMA_VIZ_MODEL = os.getenv("OLLAMA_VIZ_MODEL", "")
 
-_SQL_MODEL_CHAIN = ["deepseek-coder:latest", "qwen2.5-coder:latest",
-                    "llama3.2:latest", "gemma3:latest", "llama3:latest",
-                    "mistral:latest", "codellama:latest"]
-_VIZ_MODEL_CHAIN = ["qwen2.5-coder:latest", "deepseek-coder:latest",
-                    "llama3.2:latest", "gemma3:latest", "llama3:latest",
-                    "mistral:latest"]
+_SQL_MODEL_CHAIN = [
+    # DeepSeek-V3 – gold standard for Text-to-SQL in 2026
+    "deepseek-v3", "deepseek-v3:latest",
+    # DeepSeek Coder (any size)
+    "deepseek-coder:33b", "deepseek-coder:6.7b", "deepseek-coder:latest",
+    # Qwen3 MoE – fast coding / SQL
+    "qwen3:235b", "qwen3:32b", "qwen3:14b", "qwen3:8b", "qwen3:latest",
+    "qwen2.5-coder:32b", "qwen2.5-coder:7b", "qwen2.5-coder:latest",
+    # Llama 4 / Gemma 3 (lightweight local fallback)
+    "llama4:8b", "llama4:latest",
+    "gemma3:12b", "gemma3:9b", "gemma3:latest",
+    "llama3.2:latest", "llama3:latest",
+    "mistral:latest", "codellama:latest",
+]
+_VIZ_MODEL_CHAIN = [
+    # Qwen3 – excellent at generating clean Python/chart code
+    "qwen3:235b", "qwen3:32b", "qwen3:14b", "qwen3:8b", "qwen3:latest",
+    "qwen2.5-coder:32b", "qwen2.5-coder:latest",
+    "deepseek-v3", "deepseek-v3:latest",
+    "deepseek-coder:latest",
+    "llama4:8b", "llama4:latest",
+    "gemma3:12b", "gemma3:latest",
+    "llama3.2:latest", "llama3:latest",
+    "mistral:latest",
+]
 
 _available_models: list[str] | None = None
 
