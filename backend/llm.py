@@ -3,14 +3,25 @@
 import json
 import os
 import re
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_client = None
+MODEL_NAME = "gemini-2.0-flash"
 
-MODEL_NAME = "gemini-1.5-flash"
+
+def _get_client() -> genai.Client:
+    global _client
+    if _client is None:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "GEMINI_API_KEY not set. Create a backend/.env file with your key."
+            )
+        _client = genai.Client(api_key=api_key)
+    return _client
 
 SYSTEM_PROMPT = """You are an expert Business Intelligence assistant that converts natural language questions into SQL queries and chart configurations.
 
@@ -107,24 +118,25 @@ def _clean_json_response(text: str) -> str:
 
 async def generate_dashboard(query: str, schema: str, conversation_history: list[dict] | None = None) -> dict:
     """Use Gemini to convert a natural language query into SQL + chart configs."""
-    model = genai.GenerativeModel(MODEL_NAME)
-
     system = SYSTEM_PROMPT.format(schema=schema)
 
-    # Build conversation messages
-    messages = [{"role": "user", "parts": [system + "\n\nUser question: " + query]}]
+    # Build conversation contents
+    contents = []
 
     if conversation_history:
-        # Include previous exchanges for context
-        for entry in conversation_history[-3:]:  # Last 3 exchanges
+        for entry in conversation_history[-3:]:
             if entry.get("query"):
-                messages.insert(-1, {"role": "user", "parts": [entry["query"]]})
+                contents.append(genai.types.Content(role="user", parts=[genai.types.Part(text=entry["query"])]))
             if entry.get("response_summary"):
-                messages.insert(-1, {"role": "model", "parts": [entry["response_summary"]]})
+                contents.append(genai.types.Content(role="model", parts=[genai.types.Part(text=entry["response_summary"])]))
 
-    response = model.generate_content(
-        messages,
-        generation_config=genai.types.GenerationConfig(
+    contents.append(genai.types.Content(role="user", parts=[genai.types.Part(text="User question: " + query)]))
+
+    response = _get_client().models.generate_content(
+        model=MODEL_NAME,
+        contents=contents,
+        config=genai.types.GenerateContentConfig(
+            system_instruction=system,
             temperature=0.1,
             max_output_tokens=4096,
         ),
@@ -163,8 +175,6 @@ async def generate_followup(
     followup: str, previous_query: str, previous_sql: str, schema: str
 ) -> dict:
     """Handle follow-up questions that refine or filter previous results."""
-    model = genai.GenerativeModel(MODEL_NAME)
-
     prompt = FOLLOWUP_PROMPT.format(
         previous_query=previous_query,
         previous_sql=previous_sql,
@@ -172,9 +182,10 @@ async def generate_followup(
         schema=schema,
     )
 
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
+    response = _get_client().models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt,
+        config=genai.types.GenerateContentConfig(
             temperature=0.1,
             max_output_tokens=4096,
         ),
