@@ -109,3 +109,82 @@ export async function getSuggestions(
   if (!res.ok) return { suggestions: [] };
   return res.json();
 }
+
+// ── ML Model APIs ──────────────────────────────────
+
+export interface PredictionResult {
+  success: boolean;
+  predicted_settlement_ratio: number;
+  predicted_percentage: number;
+  risk_level: string;
+  insurer: string;
+  year: number;
+  risk_classification: {
+    risk_tier: string;
+    confidence: Record<string, number>;
+    insurer: string;
+    year: number;
+  };
+}
+
+export interface AnomalyResult {
+  insurer: string;
+  year: string;
+  settlement_ratio: number;
+  anomaly_score: number;
+  total_claims: number;
+  reason: string;
+}
+
+export interface MLOverviewItem {
+  insurer: string;
+  year: string;
+  actual_ratio: number;
+  predicted_ratio: number;
+  residual: number;
+  total_claims: number;
+  total_amount: number;
+}
+
+export async function mlPredict(data: {
+  insurer: string;
+  year: number;
+  total_claims_no: number;
+  total_claims_amt: number;
+  claims_repudiated_no: number;
+  claims_rejected_no: number;
+  claims_pending_start_no: number;
+  claims_pending_end_no: number;
+  claims_intimated_no: number;
+  claims_unclaimed_no: number;
+  claims_paid_amt: number;
+}): Promise<PredictionResult> {
+  const res = await fetch(`${API_BASE}/ml/predict`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Prediction failed");
+  }
+  return res.json();
+}
+
+export async function mlAnomalies(): Promise<{ success: boolean; anomalies: AnomalyResult[] }> {
+  const res = await fetch(`${API_BASE}/ml/anomalies`);
+  if (!res.ok) throw new Error("Failed to fetch anomalies");
+  return res.json();
+}
+
+export async function mlInsurers(): Promise<{ success: boolean; insurers: string[] }> {
+  const res = await fetch(`${API_BASE}/ml/insurers`);
+  if (!res.ok) throw new Error("Failed to fetch insurers");
+  return res.json();
+}
+
+export async function mlOverview(): Promise<{ success: boolean; predictions: MLOverviewItem[] }> {
+  const res = await fetch(`${API_BASE}/ml/overview`);
+  if (!res.ok) throw new Error("Failed to fetch overview");
+  return res.json();
+}
