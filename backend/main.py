@@ -143,6 +143,18 @@ def get_db_schema(session_id: str | None = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _is_explain_query(query: str) -> bool:
+    """Detect if the user is asking about the dataset itself rather than requesting a visualisation."""
+    q = query.lower().strip()
+    explain_patterns = [
+        "tell me about", "describe", "what is this", "what does this",
+        "explain", "what kind of data", "what data", "about the csv",
+        "about the file", "about this data", "what columns", "what fields",
+        "overview of", "summary of the data", "what's in",
+    ]
+    return any(p in q for p in explain_patterns)
+
+
 @app.post("/api/query")
 async def query_dashboard(req: QueryRequest):
     """Convert a natural language question into SQL → execute → store results → return charts."""
@@ -155,6 +167,39 @@ async def query_dashboard(req: QueryRequest):
                 status_code=400,
                 detail="No data available. Please upload a CSV file or use the default dataset.",
             )
+
+        # If the user is asking *about* the data rather than asking to visualise it,
+        # route to the explain flow and return a helpful text answer.
+        if _is_explain_query(req.query):
+            sample: list[dict] = []
+            tbl_match = re.search(r'(?:Table:\s*|CREATE TABLE\s+)"?([^\s"(]+)"?', schema, re.IGNORECASE)
+            if tbl_match:
+                try:
+                    sample = execute_query(f'SELECT * FROM "{tbl_match.group(1)}" LIMIT 5', session_id)
+                except Exception:
+                    pass
+            from ollama_llm import explain_dataset
+            explanation = await explain_dataset(schema, sample)
+            if not session_id:
+                session_id = str(uuid.uuid4())
+            if session_id not in sessions:
+                sessions[session_id] = {"history": []}
+            sessions[session_id]["history"].append({"query": req.query, "response_summary": explanation.get("description", ""), "sql": ""})
+
+            questions = explanation.get("suggested_questions", [])
+            body = f"**{explanation.get('title', 'Your Dataset')}**\n\n{explanation.get('description', '')}"
+            if questions:
+                body += "\n\nHere are some things you can ask me to visualise:\n" + "\n".join(f"• {q}" for q in questions)
+            body += "\n\nWhat would you like to visualise?"
+            return {
+                "success": True,
+                "session_id": session_id,
+                "summary": body,
+                "thinking": "",
+                "assumptions": [],
+                "charts": [],
+                "suggested_questions": questions,
+            }
 
         history = []
         if session_id and session_id in sessions:

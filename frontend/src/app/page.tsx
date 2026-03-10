@@ -95,8 +95,13 @@ export default function Home() {
             assumptions: result.assumptions,
           });
         } else if (result.success) {
-          // Query ran fine but returned no data or chart generation yielded nothing
+          // Explain-type response or query returned no chart data
           addMessage("assistant", result.summary || result.error || "The query returned no results. Try asking a different question.");
+          // Update suggestions if the backend returned them (e.g. from explain)
+          const resp = result as unknown as Record<string, unknown>;
+          if (Array.isArray(resp.suggested_questions) && (resp.suggested_questions as string[]).length > 0) {
+            setSuggestions(resp.suggested_questions as string[]);
+          }
         } else {
           const errorMsg =
             result.error ||

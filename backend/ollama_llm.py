@@ -425,6 +425,45 @@ async def _gemini_followup(
     return await generate_followup(followup, previous_query, previous_sql, schema)
 
 
+def _wrap_plain_text_as_explain(raw: str, schema: str) -> dict:
+    """When the LLM returns plain text instead of JSON, build a valid explain response."""
+    import re as _re
+    table_match = _re.search(r'Table:\s*(\S+)', schema)
+    title = table_match.group(1).replace('_', ' ').title() if table_match else "Uploaded Dataset"
+    tbl_name = table_match.group(1) if table_match else "data"
+
+    # Build useful suggested questions from the schema columns
+    cols = _re.findall(r'Columns:\s*(.+)', schema)
+    col_names = []
+    if cols:
+        col_names = [c.strip().split('(')[0].strip() for c in cols[0].split(',')][:10]
+
+    suggestions = []
+    readable_tbl = tbl_name.replace('_', ' ')
+    if col_names:
+        numeric_cols = [c for c in col_names if any(k in c.lower() for k in ('amt', 'no', 'ratio', 'count', 'total', 'amount', 'price', 'revenue', 'score'))]
+        cat_cols = [c for c in col_names if any(k in c.lower() for k in ('name', 'insurer', 'category', 'region', 'type', 'dept', 'channel'))]
+        time_cols = [c for c in col_names if any(k in c.lower() for k in ('date', 'year', 'month', 'time'))]
+
+        if cat_cols and numeric_cols:
+            suggestions.append(f"Show {numeric_cols[0].replace('_',' ')} by {cat_cols[0].replace('_',' ')} as a bar chart")
+        if time_cols and numeric_cols:
+            suggestions.append(f"Show the trend of {numeric_cols[0].replace('_',' ')} over {time_cols[0].replace('_',' ')}")
+        if cat_cols:
+            suggestions.append(f"Which {cat_cols[0].replace('_',' ')} has the highest values? Show top 10")
+        suggestions.append(f"Show a summary overview of {readable_tbl}")
+        if len(numeric_cols) >= 2:
+            suggestions.append(f"Compare {numeric_cols[0].replace('_',' ')} vs {numeric_cols[1].replace('_',' ')} as a scatter chart")
+
+    return {
+        "title": title,
+        "description": raw.strip()[:600],
+        "key_columns": [],
+        "suggested_questions": suggestions[:5],
+        "error": None,
+    }
+
+
 async def explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
     """Explain what a dataset is about using the schema and sample rows.
 
@@ -437,7 +476,11 @@ async def explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
     if model:
         try:
             raw = await _call_ollama_async(model, system, "Explain this dataset.")
-            result = _extract_json(raw)
+            try:
+                result = _extract_json(raw)
+            except (json.JSONDecodeError, ValueError):
+                # LLM returned plain text instead of JSON — wrap it
+                result = _wrap_plain_text_as_explain(raw, schema)
             result.setdefault("error", None)
             return result
         except Exception:
@@ -447,13 +490,30 @@ async def explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
     try:
         return await _gemini_explain_dataset(schema, sample_rows)
     except Exception as exc:
-        return {
-            "title": "Uploaded Dataset",
-            "description": "Dataset loaded successfully.",
-            "key_columns": [],
-            "suggested_questions": [],
-            "error": f"Could not generate explanation: {exc}",
-        }
+        # Last-resort: build a basic response from the schema itself
+        return _wrap_plain_text_as_explain(
+            _build_schema_summary(schema, sample_rows), schema
+        )
+
+
+def _build_schema_summary(schema: str, sample_rows: list[dict]) -> str:
+    """Build a plain description from the schema text when all LLMs fail."""
+    import re as _re
+    tables = _re.findall(r'Table:\s*(\S+)\s*\((\d+) rows\)', schema)
+    if not tables:
+        return "A dataset has been loaded. You can ask me to visualise any aspect of it."
+    parts = []
+    for tname, count in tables:
+        readable = tname.replace('_', ' ').title()
+        parts.append(f"{readable} ({count} rows)")
+    cols = _re.findall(r'Columns:\s*(.+)', schema)
+    col_list = cols[0].split(',')[:6] if cols else []
+    col_names = [c.strip().split('(')[0].strip().replace('_', ' ') for c in col_list]
+    desc = f"This dataset contains: {', '.join(parts)}. "
+    if col_names:
+        desc += f"Key fields include: {', '.join(col_names)}. "
+    desc += "Ask me what you'd like to visualise!"
+    return desc
 
 
 async def _gemini_explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
