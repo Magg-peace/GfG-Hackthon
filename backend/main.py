@@ -211,7 +211,7 @@ async def query_dashboard(req: QueryRequest):
         state = await run_query_pipeline(
             query=req.query,
             schema=schema,
-            session_id=session_id or "default",
+            session_id=session_id or "",
             use_postgres=use_pg,
             conversation_history=history,
         )

@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "120"))
+OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180"))
 
 # Override individual models via env vars
 OLLAMA_SQL_MODEL = os.getenv("OLLAMA_SQL_MODEL", "")
@@ -48,20 +48,25 @@ _VIZ_MODEL_CHAIN = [
 ]
 
 _available_models: list[str] | None = None
+_models_fetched_at: float = 0.0
 
 
 # ── Model discovery ────────────────────────────────────────────────────────────
 
 def get_available_models() -> list[str]:
-    """Fetch installed model names from Ollama (cached after first call)."""
-    global _available_models
-    if _available_models is not None:
+    """Fetch installed model names from Ollama (cached for 60s after success)."""
+    global _available_models, _models_fetched_at
+    import time
+    now = time.time()
+    # Re-fetch if cache is empty or older than 60 seconds
+    if _available_models is not None and (now - _models_fetched_at) < 60:
         return _available_models
     try:
-        r = httpx.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
+        r = httpx.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=10)
         r.raise_for_status()
         data = r.json()
         _available_models = [m["name"] for m in data.get("models", [])]
+        _models_fetched_at = now
         return _available_models
     except Exception:
         _available_models = None  # Don't cache failures so next call retries
@@ -280,18 +285,31 @@ async def generate_sql(query: str, schema: str, dialect: str = "PostgreSQL") -> 
     if model:
         try:
             raw = await _call_ollama_async(model, system, f"User question: {query}")
-            result = _extract_json(raw)
-            result.setdefault("error", None)
-            return result
+            try:
+                result = _extract_json(raw)
+                result.setdefault("error", None)
+                return result
+            except (json.JSONDecodeError, ValueError):
+                # LLM returned non-JSON — retry once with a stricter prompt
+                raw2 = await _call_ollama_async(
+                    model, system,
+                    f"User question: {query}\n\nIMPORTANT: You MUST respond with ONLY valid JSON. No explanations, no markdown."
+                )
+                try:
+                    result = _extract_json(raw2)
+                    result.setdefault("error", None)
+                    return result
+                except (json.JSONDecodeError, ValueError):
+                    return {"thinking": "", "sql": "", "error": f"The local LLM ({model}) did not return valid JSON. Try a different question or run 'ollama pull qwen2.5-coder' for a better model."}
         except Exception as exc:
-            # Ollama failed – fall back to Gemini
-            pass
+            # Ollama connection/timeout failure – fall back to Gemini
+            print(f"[WARN] Ollama call failed ({model}): {exc}")
 
     # Gemini fallback
     try:
         return await _gemini_generate_sql(query, schema, dialect)
     except Exception as exc:
-        return {"thinking": "", "sql": "", "error": f"No LLM available. Ollama has no matching models and Gemini is not configured. Please run 'ollama pull qwen2.5-coder' or set GEMINI_API_KEY in .env. Detail: {exc}"}
+        return {"thinking": "", "sql": "", "error": f"No LLM available. Ollama {'returned an error' if model else 'has no matching models'} and Gemini is not configured. Please ensure Ollama is running or set GEMINI_API_KEY in backend/.env. Detail: {exc}"}
 
 
 # ── Public API: chart config generation ───────────────────────────────────────
@@ -323,15 +341,25 @@ async def generate_charts(
     if model:
         try:
             raw = await _call_ollama_async(model, system, user_msg)
-            result = _extract_json(raw)
+            try:
+                result = _extract_json(raw)
+            except (json.JSONDecodeError, ValueError):
+                # Retry once with stricter instruction
+                raw2 = await _call_ollama_async(
+                    model, system,
+                    user_msg + "\n\nIMPORTANT: Respond with ONLY valid JSON. No markdown, no explanations."
+                )
+                result = _extract_json(raw2)
             # Patch each chart's SQL to use the actual executed SQL
             for chart in result.get("charts", []):
                 if not chart.get("sql"):
                     chart["sql"] = sql
             result.setdefault("error", None)
             return result
-        except Exception:
-            pass
+        except (json.JSONDecodeError, ValueError):
+            print(f"[WARN] Chart generation: LLM ({model}) returned non-JSON twice")
+        except Exception as exc:
+            print(f"[WARN] Ollama chart call failed ({model}): {exc}")
 
     # Gemini fallback
     try:
@@ -365,11 +393,20 @@ async def generate_followup_sql(
     if model:
         try:
             raw = await _call_ollama_async(model, system, f"Follow-up: {followup}")
-            result = _extract_json(raw)
+            try:
+                result = _extract_json(raw)
+            except (json.JSONDecodeError, ValueError):
+                raw2 = await _call_ollama_async(
+                    model, system,
+                    f"Follow-up: {followup}\n\nIMPORTANT: Respond ONLY with valid JSON."
+                )
+                result = _extract_json(raw2)
             result.setdefault("error", None)
             return result
-        except Exception:
-            pass
+        except (json.JSONDecodeError, ValueError):
+            print(f"[WARN] Followup: LLM ({model}) returned non-JSON twice")
+        except Exception as exc:
+            print(f"[WARN] Ollama followup call failed ({model}): {exc}")
 
     try:
         return await _gemini_followup(followup, previous_query, previous_sql, schema)

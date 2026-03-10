@@ -54,26 +54,29 @@ class AgentState(TypedDict):
 
 def _execute_query(sql: str, session_id: str | None, use_postgres: bool) -> list[dict]:
     """Try PostgreSQL first; fall back to SQLite."""
+    sid = session_id or None  # Convert empty string to None for default DB
     if use_postgres:
         from pg_database import execute_pg_query
-        return execute_pg_query(sql, session_id)
+        return execute_pg_query(sql, sid)
     else:
         from database import execute_query
-        return execute_query(sql, session_id)
+        return execute_query(sql, sid)
 
 
 def _store_results(data: list[dict], session_id: str, idx: int, use_postgres: bool) -> str:
     """Persist results and return the table name."""
     if not data:
         return ""
+    sid = session_id or None  # Convert empty string to None for default DB
     if use_postgres:
         from pg_database import store_query_results
         return store_query_results(data, session_id, idx)
     # SQLite – lightweight inline storage
     from database import get_connection
     import re
-    table_name = f"results_{session_id.replace('-','')[:12]}_{idx}"
-    conn = get_connection(session_id)
+    sid_slug = (session_id or "default").replace('-','')[:12]
+    table_name = f"results_{sid_slug}_{idx}"
+    conn = get_connection(sid)
     cursor = conn.cursor()
     columns = list(data[0].keys())
     safe_cols = [re.sub(r"[^a-z0-9_]", "_", c.lower()) for c in columns]
