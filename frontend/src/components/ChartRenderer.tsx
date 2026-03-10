@@ -408,7 +408,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
   };
 
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 animate-slide-up">
+    <div className="glass-card-hover p-6 animate-slide-up transition-all duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -422,14 +422,14 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
         </div>
         <div className="flex items-center gap-2">
           {chart.row_count !== undefined && (
-            <span className="text-xs text-slate-500 bg-slate-900 px-2 py-1 rounded-md">
+            <span className="text-xs text-slate-500 bg-slate-900/80 px-2 py-1 rounded-md">
               <Table className="w-3 h-3 inline mr-1" />
               {chart.row_count} rows
             </span>
           )}
           <button
             onClick={() => setShowSql(!showSql)}
-            className="text-xs text-slate-500 hover:text-slate-300 bg-slate-900 px-2 py-1 rounded-md transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-300 bg-slate-900/80 px-2 py-1 rounded-md transition-colors"
           >
             <Code className="w-3 h-3 inline mr-1" />
             SQL
@@ -444,7 +444,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
       {/* SQL Expandable */}
       {showSql && chart.sql_executed && (
-        <pre className="mb-4 text-xs bg-slate-900 rounded-lg p-3 overflow-x-auto text-emerald-300 border border-slate-700">
+        <pre className="mb-4 text-xs bg-slate-950 rounded-lg p-3 overflow-x-auto text-emerald-400 border border-slate-700 font-mono">
           {chart.sql_executed}
         </pre>
       )}

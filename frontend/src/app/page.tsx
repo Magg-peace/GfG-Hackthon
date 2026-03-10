@@ -188,16 +188,16 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="flex-shrink-0 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 py-3 flex items-center justify-between z-10">
+      <header className="flex-shrink-0 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">
-              InsightAI
+            <h1 className="text-xl font-bold text-blue-400 tracking-tight">
+              ⭐ InsightAI
             </h1>
-            <p className="text-[10px] text-slate-500 -mt-0.5">
+            <p className="text-xs text-slate-400 -mt-0.5">
               Conversational Business Intelligence
             </p>
           </div>
@@ -253,10 +253,10 @@ export default function Home() {
       <div className="flex-1 flex overflow-hidden">
         {/* Chat Sidebar */}
         <div
-          className={`flex-shrink-0 border-r border-slate-800 bg-slate-900/50 flex flex-col transition-all duration-300 ${
+          className={`flex-shrink-0 border-r border-slate-800 bg-slate-950/50 flex flex-col transition-all duration-300 ${
             sidebarCollapsed
               ? "w-0 overflow-hidden"
-              : "w-full lg:w-[420px]"
+              : "w-full lg:w-[320px]"
           }`}
         >
           {/* File Upload Area */}

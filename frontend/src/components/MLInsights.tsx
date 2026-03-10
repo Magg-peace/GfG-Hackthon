@@ -473,19 +473,19 @@ export default function MLInsights() {
   ];
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+    <div className="glass-card overflow-hidden transition-all duration-200">
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/50 transition-colors"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-purple-600/20 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-purple-600/20 flex items-center justify-center shadow-lg shadow-purple-500/10">
             <Brain className="w-4 h-4 text-purple-400" />
           </div>
           <div className="text-left">
             <h3 className="text-sm font-semibold text-white">ML Insights</h3>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-slate-400">
               Insurance Claims Prediction & Anomaly Detection
             </p>
           </div>
@@ -500,14 +500,14 @@ export default function MLInsights() {
       {!collapsed && (
         <div className="px-5 pb-5 animate-fade-in">
           {/* Tabs */}
-          <div className="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
+          <div className="flex gap-1 mb-4 bg-slate-800/80 rounded-lg p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-slate-700 text-white"
+                    ? "bg-slate-700 text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-300"
                 }`}
               >

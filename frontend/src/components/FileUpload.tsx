@@ -49,7 +49,7 @@ export default function FileUpload({
 
   if (currentFile) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-emerald-900/20 border border-emerald-700/40 rounded-xl">
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-900/20 border border-emerald-700/40 rounded-xl">
         <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
         <FileSpreadsheet className="w-4 h-4 text-emerald-400 flex-shrink-0" />
         <span className="text-xs text-emerald-300 truncate">{currentFile}</span>
@@ -70,8 +70,8 @@ export default function FileUpload({
         {...getRootProps()}
         className={`border-2 border-dashed rounded-xl px-4 py-4 text-center cursor-pointer transition-all ${
           isDragActive
-            ? "border-brand-500 bg-brand-600/10"
-            : "border-slate-700 hover:border-slate-600 bg-slate-800/30"
+            ? "border-blue-500 bg-blue-600/10"
+            : "border-slate-700 hover:border-slate-600 bg-slate-900/50"
         } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
       >
         <input {...getInputProps()} />

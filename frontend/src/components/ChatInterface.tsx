@@ -117,17 +117,17 @@ export default function ChatInterface({
             }`}
           >
             {msg.role === "assistant" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center mt-0.5">
-                <Bot className="w-4 h-4 text-brand-400" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center mt-0.5">
+                <Bot className="w-4 h-4 text-blue-400" />
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-md ${
                 msg.role === "user"
-                  ? "bg-brand-600 text-white"
+                  ? "bg-blue-600 text-white"
                   : msg.isError
                   ? "bg-red-900/30 border border-red-700/50 text-red-200"
-                  : "bg-slate-800 text-slate-200"
+                  : "bg-slate-800 border border-slate-700 text-slate-200"
               }`}
             >
               {msg.isError && (
@@ -211,8 +211,8 @@ export default function ChatInterface({
       )}
 
       {/* Input Area */}
-      <div className="border-t border-slate-800 px-4 py-3">
-        <div className="flex items-end gap-2 bg-slate-800/50 border border-slate-700 rounded-2xl px-4 py-2 focus-within:border-brand-500/50 transition-colors">
+      <div className="border-t border-slate-800 px-4 py-3 bg-slate-950">
+        <div className="flex items-end gap-2 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 focus-within:border-blue-500 focus-within:shadow-inner transition-all">
           <textarea
             ref={inputRef}
             value={input}
@@ -226,7 +226,7 @@ export default function ChatInterface({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:bg-slate-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            className="flex-shrink-0 w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20"
           >
             <Send className="w-4 h-4 text-white" />
           </button>

@@ -43,7 +43,7 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
   if (!charts.length) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center mb-4">
+        <div className="w-20 h-20 rounded-2xl bg-slate-900/60 border border-slate-700 flex items-center justify-center mb-4">
           <LayoutDashboard className="w-10 h-10 text-slate-600" />
         </div>
         <h2 className="text-xl font-semibold text-slate-400 mb-2">
@@ -62,8 +62,8 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
       {/* Summary Banner + Export buttons */}
       <div className="mb-6 flex items-start gap-4">
         {summary && (
-          <div className="flex-1 bg-brand-600/10 border border-brand-500/20 rounded-xl px-5 py-4 animate-fade-in">
-            <p className="text-sm text-brand-200">{summary}</p>
+          <div className="flex-1 bg-blue-900/30 border border-blue-700 rounded-xl px-5 py-4 animate-fade-in">
+            <p className="text-sm text-blue-300 font-medium">{summary}</p>
           </div>
         )}
         {/* Export controls */}
@@ -71,7 +71,7 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
           <button
             onClick={() => handleExport("pdf")}
             disabled={!!exporting}
-            className="flex items-center gap-1.5 px-3 py-2 bg-rose-700/20 hover:bg-rose-700/40 border border-rose-600/30 text-rose-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-medium shadow-lg transition-all duration-200 hover:scale-[1.02] disabled:opacity-50"
             title="Export as PDF"
           >
             {exporting === "pdf" ? (
@@ -84,7 +84,7 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
           <button
             onClick={() => handleExport("excel")}
             disabled={!!exporting}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-700/20 hover:bg-emerald-700/40 border border-emerald-600/30 text-emerald-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl text-xs font-medium shadow-lg transition-all duration-200 hover:scale-[1.02] disabled:opacity-50"
             title="Export as Excel"
           >
             {exporting === "excel" ? (

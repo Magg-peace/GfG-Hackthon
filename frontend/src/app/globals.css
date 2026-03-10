@@ -3,11 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f8fafc;
+  --bg-primary: #020617;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #1e293b;
+  --bg-card: #0f172a;
+  --border-color: #1e293b;
+  --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
+  --text-muted: #64748b;
   --accent: #3b82f6;
   --accent-hover: #2563eb;
   --success: #22c55e;
@@ -32,17 +35,17 @@ body {
   min-height: 100vh;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Modern dark style */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: #0f172a;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 3px;
+  background: #334155;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
@@ -64,6 +67,11 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out;
 }
@@ -73,10 +81,19 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--bg-tertiary) 25%, #475569 50%, var(--bg-tertiary) 75%);
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
+}
+
+/* Glassmorphism card style */
+.glass-card {
+  @apply bg-slate-900/60 backdrop-blur-md border border-slate-700 rounded-2xl shadow-xl;
+}
+
+.glass-card-hover {
+  @apply glass-card transition-all duration-200 hover:shadow-2xl hover:scale-[1.01];
 }
 
 /* Recharts overrides */
@@ -104,4 +121,19 @@ body {
 }
 .chat-message li {
   margin: 0.1rem 0;
+}
+
+/* Input field glow effect */
+.input-glow:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Button glow effect */
+.btn-glow {
+  @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-lg;
+}
+
+/* Gradient backgrounds */
+.bg-dashboard-gradient {
+  background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
 }
