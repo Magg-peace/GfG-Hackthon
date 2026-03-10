@@ -220,6 +220,33 @@ Respond ONLY with valid JSON (no markdown fences):
   "assumptions": []
 }}"""
 
+_EXPLAIN_SYSTEM = """You are a data analyst. Given a database schema and sample rows from a dataset,
+provide a clear, friendly explanation of what the data is about — suitable for a business user who
+has just uploaded the file and wants to understand it before asking questions.
+
+Respond ONLY with valid JSON (no markdown fences):
+{{
+  "title": "Short descriptive name for this dataset (e.g. 'India Life Insurance Claims 2015–2022')",
+  "description": "2–4 sentence plain-English explanation of what this dataset tracks, the time period it covers, and who the main entities are.",
+  "key_columns": [
+    {{"column": "column_name", "meaning": "what this column represents"}}
+  ],
+  "suggested_questions": [
+    "A concrete, specific question a business user could ask about this data (ready to use as-is)",
+    "Another specific question",
+    "Another specific question",
+    "Another specific question"
+  ],
+  "error": null
+}}
+
+DATABASE SCHEMA:
+{schema}
+
+SAMPLE ROWS (first 5):
+{sample}
+"""
+
 _FOLLOWUP_SYSTEM = """You are a BI assistant continuing a data conversation.
 
 Previous query: {previous_query}
@@ -396,3 +423,50 @@ async def _gemini_followup(
 ) -> dict:
     from llm import generate_followup
     return await generate_followup(followup, previous_query, previous_sql, schema)
+
+
+async def explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
+    """Explain what a dataset is about using the schema and sample rows.
+
+    Returns: {"title": ..., "description": ..., "key_columns": [...], "suggested_questions": [...], "error": ...}
+    """
+    sample_preview = json.dumps(sample_rows[:5], default=str, indent=2)
+    system = _EXPLAIN_SYSTEM.format(schema=schema, sample=sample_preview)
+    model = _pick_model(_VIZ_MODEL_CHAIN, OLLAMA_VIZ_MODEL)
+
+    if model:
+        try:
+            raw = await _call_ollama_async(model, system, "Explain this dataset.")
+            result = _extract_json(raw)
+            result.setdefault("error", None)
+            return result
+        except Exception:
+            pass
+
+    # Gemini fallback
+    try:
+        return await _gemini_explain_dataset(schema, sample_rows)
+    except Exception as exc:
+        return {
+            "title": "Uploaded Dataset",
+            "description": "Dataset loaded successfully.",
+            "key_columns": [],
+            "suggested_questions": [],
+            "error": f"Could not generate explanation: {exc}",
+        }
+
+
+async def _gemini_explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
+    from google import genai
+    client = _get_gemini_client()
+    sample_preview = json.dumps(sample_rows[:5], default=str, indent=2)
+    prompt = _EXPLAIN_SYSTEM.format(schema=schema, sample=sample_preview) + "\n\nExplain this dataset."
+    resp = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=[genai.types.Content(role="user", parts=[genai.types.Part(text=prompt)])],
+        config=genai.types.GenerateContentConfig(temperature=0.1, max_output_tokens=2048),
+    )
+    try:
+        return _extract_json(resp.text)
+    except Exception:
+        return {"title": "Uploaded Dataset", "description": "Dataset loaded.", "key_columns": [], "suggested_questions": [], "error": None}

@@ -188,12 +188,14 @@ async def chart_generator_node(state: AgentState) -> dict:
         chart.setdefault("sql_executed", sql)
         chart.setdefault("row_count", len(rows))
 
+    llm_error = result.get("error") if not charts else None
+
     return {
         "charts": charts,
         "summary": result.get("summary", ""),
         "assumptions": result.get("assumptions", []),
         "thinking": state.get("thinking", "") + "\n" + result.get("thinking", ""),
-        "error": None,
+        "error": llm_error,
     }
 
 

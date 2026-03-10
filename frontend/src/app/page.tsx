@@ -10,6 +10,7 @@ import {
   followUpQuery,
   getSuggestions,
   getHealth,
+  explainData,
   ChartConfig,
   UploadResponse,
 } from "@/lib/api";
@@ -93,10 +94,14 @@ export default function Home() {
             thinking: result.thinking,
             assumptions: result.assumptions,
           });
+        } else if (result.success) {
+          // Query ran fine but returned no data or chart generation yielded nothing
+          addMessage("assistant", result.summary || result.error || "The query returned no results. Try asking a different question.");
         } else {
           const errorMsg =
             result.error ||
-            "I couldn't generate charts for that query. Please try rephrasing your question.";
+            result.summary ||
+            "Something went wrong processing your query. Please try again.";
           addMessage("assistant", errorMsg, { isError: true });
         }
       } catch (err) {
@@ -113,7 +118,7 @@ export default function Home() {
   );
 
   const handleUploadComplete = useCallback(
-    (result: UploadResponse) => {
+    async (result: UploadResponse) => {
       setSessionId(result.session_id);
       setUploadedFile(result.filename);
       setCharts([]);
@@ -126,13 +131,40 @@ export default function Home() {
         setSuggestions(res.suggestions)
       );
 
+      // Confirm upload
       addMessage(
         "assistant",
-        `Successfully loaded **${result.filename}** (${result.row_count.toLocaleString()} rows, ` +
-        `${result.columns.length} columns). The data has been stored in ${
-          (result as unknown as { postgres?: boolean }).postgres ? "PostgreSQL" : "SQLite"
-        }. Ask me anything about it!`
+        `Got it! **${result.filename}** loaded — ${result.row_count.toLocaleString()} rows across ${result.columns.length} columns. Let me analyse what this data is about…`
       );
+
+      setIsLoading(true);
+      try {
+        const explanation = await explainData(result.session_id);
+
+        const suggestionsBlock =
+          explanation.suggested_questions?.length
+            ? `\n\nHere are some things you can ask me:\n${explanation.suggested_questions
+                .map((q) => `• ${q}`)
+                .join("\n")}`
+            : "";
+
+        addMessage(
+          "assistant",
+          `**${explanation.title}**\n\n${explanation.description}${suggestionsBlock}\n\nWhat would you like to visualise?`
+        );
+
+        // Replace generic suggestions with data-specific ones
+        if (explanation.suggested_questions?.length) {
+          setSuggestions(explanation.suggested_questions);
+        }
+      } catch {
+        addMessage(
+          "assistant",
+          "Data loaded! What would you like to visualise? You can ask me anything — trends, comparisons, top performers, or a summary overview."
+        );
+      } finally {
+        setIsLoading(false);
+      }
     },
     [addMessage]
   );

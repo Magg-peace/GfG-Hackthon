@@ -46,6 +46,15 @@ export interface SuggestionsResponse {
   suggestions: string[];
 }
 
+export interface ExplainResponse {
+  success: boolean;
+  title: string;
+  description: string;
+  key_columns: { column: string; meaning: string }[];
+  suggested_questions: string[];
+  error?: string;
+}
+
 export async function queryDashboard(
   query: string,
   sessionId?: string | null
@@ -107,6 +116,15 @@ export async function getSuggestions(
     : `${API_BASE}/suggestions`;
   const res = await fetch(url);
   if (!res.ok) return { suggestions: [] };
+  return res.json();
+}
+
+export async function explainData(sessionId: string): Promise<ExplainResponse> {
+  const res = await fetch(`${API_BASE}/explain?session_id=${sessionId}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Explain request failed");
+  }
   return res.json();
 }
 

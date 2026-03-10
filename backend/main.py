@@ -343,6 +343,35 @@ def get_suggestions(session_id: str | None = None):
         return {"suggestions": []}
 
 
+@app.get("/api/explain")
+async def explain_data(session_id: str | None = None):
+    """Explain what the current dataset is about using an LLM, and suggest questions."""
+    try:
+        schema = get_schema(session_id)
+        if not schema.strip():
+            raise HTTPException(status_code=400, detail="No data available. Please upload a CSV file first.")
+
+        # Fetch a small sample of rows for context
+        sample: list[dict] = []
+        # Pull the first table name from the schema text (format: "Table: <name>" or CREATE TABLE "<name>")
+        tbl_match = re.search(r'(?:Table:\s*|CREATE TABLE\s+)"?([^\s"(]+)"?', schema, re.IGNORECASE)
+        if tbl_match:
+            tbl = tbl_match.group(1)
+            try:
+                sample = execute_query(f'SELECT * FROM "{tbl}" LIMIT 5', session_id)
+            except Exception:
+                pass
+
+        from ollama_llm import explain_dataset
+        result = await explain_dataset(schema, sample)
+        return {"success": True, **result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ── Export endpoints ───────────────────────────────────────────────────────────
 
 @app.post("/api/export")
