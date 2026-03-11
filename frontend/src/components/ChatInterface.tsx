@@ -184,7 +184,7 @@ export default function ChatInterface({
                   <span className="typing-dot" />
                 </div>
                 <span className="text-[12px] text-[#9CA3AF]">
-                  InsightAI is analyzing your data...
+                  VizPulse is analyzing your data...
                 </span>
               </div>
               <div className="mt-3 space-y-2">
