@@ -31,9 +31,9 @@ import {
 } from "lucide-react";
 
 const COLORS = [
-  "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6",
-  "#06b6d4", "#ec4899", "#f97316", "#14b8a6", "#a855f7",
-  "#6366f1", "#84cc16",
+  "#4f8fff", "#34d399", "#fbbf24", "#f87171", "#a78bfa",
+  "#22d3ee", "#f472b6", "#fb923c", "#2dd4bf", "#c084fc",
+  "#818cf8", "#a3e635",
 ];
 
 function formatNumber(val: unknown): string {
@@ -55,10 +55,10 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 shadow-xl">
-      <p className="text-xs text-slate-400 mb-1">{label}</p>
+    <div className="bg-[#0c1021]/98 backdrop-blur-xl border border-[#1c2340] rounded-xl px-4 py-3 shadow-2xl shadow-black/40">
+      <p className="text-[11px] text-[#5a6380] mb-2 font-medium">{label}</p>
       {payload.map((entry, i) => (
-        <p key={i} className="text-sm font-medium" style={{ color: entry.color }}>
+        <p key={i} className="text-[13px] font-semibold leading-relaxed" style={{ color: entry.color }}>
           {entry.name}: {formatNumber(entry.value)}
         </p>
       ))}
@@ -76,7 +76,7 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 10;
 
-  if (!data.length) return <p className="text-slate-500 text-sm">No data</p>;
+  if (!data.length) return <p className="text-[#5a6380] text-sm">No data</p>;
 
   const columns = Object.keys(data[0]);
 
@@ -115,17 +115,17 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-[#1c2340]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-700">
+            <tr className="border-b border-[#1c2340] bg-[#0c1021]">
               {columns.map((col) => (
                 <th
                   key={col}
                   onClick={() => handleSort(col)}
-                  className="text-left px-3 py-2 text-slate-400 font-medium cursor-pointer hover:text-white transition-colors"
+                  className="text-left px-4 py-2.5 text-[#5a6380] font-medium cursor-pointer hover:text-white transition-colors text-[11px] uppercase tracking-wider"
                 >
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {col}
                     <ArrowUpDown className="w-3 h-3" />
                   </div>
@@ -137,10 +137,10 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
             {paginated.map((row, i) => (
               <tr
                 key={i}
-                className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors"
+                className="border-b border-[#151b30] hover:bg-[#151b30]/60 transition-colors"
               >
                 {columns.map((col) => (
-                  <td key={col} className="px-3 py-2 text-slate-300">
+                  <td key={col} className="px-4 py-2.5 text-[#c4ccdf] text-[13px]">
                     {formatNumber(row[col])}
                   </td>
                 ))}
@@ -150,7 +150,7 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
+        <div className="flex items-center justify-between mt-3 text-[11px] text-[#5a6380]">
           <span>
             Page {currentPage + 1} of {totalPages} ({sortedData.length} rows)
           </span>
@@ -158,7 +158,7 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
             <button
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
               disabled={currentPage === 0}
-              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40"
+              className="px-3 py-1 rounded-lg bg-[#0e1225] border border-[#1c2340] hover:bg-[#151b30] hover:border-[#4f8fff]/20 disabled:opacity-30 transition-all"
             >
               Prev
             </button>
@@ -167,7 +167,7 @@ function DataTable({ data }: { data: Record<string, unknown>[] }) {
                 setCurrentPage((p) => Math.min(totalPages - 1, p + 1))
               }
               disabled={currentPage >= totalPages - 1}
-              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40"
+              className="px-3 py-1 rounded-lg bg-[#0e1225] border border-[#1c2340] hover:bg-[#151b30] hover:border-[#4f8fff]/20 disabled:opacity-30 transition-all"
             >
               Next
             </button>
@@ -182,16 +182,16 @@ function MetricCard({ chart }: { chart: ChartConfig }) {
   const value =
     chart.data?.[0]?.[chart.value_column || "metric_value"] ?? "—";
   return (
-    <div className="flex flex-col items-center justify-center py-6">
-      <p className="text-sm text-slate-400 mb-2">{chart.label || chart.title}</p>
-      <p className="text-4xl font-bold text-white">
+    <div className="flex flex-col items-center justify-center py-8">
+      <p className="text-xs text-[#5a6380] mb-3 uppercase tracking-wider font-medium">{chart.label || chart.title}</p>
+      <p className="text-5xl font-bold bg-gradient-to-r from-white to-[#8b95b0] bg-clip-text text-transparent">
         {chart.prefix || ""}
         {formatNumber(value)}
         {chart.suffix || ""}
       </p>
       {chart.insight && (
-        <p className="text-sm text-slate-400 mt-3 flex items-center gap-1">
-          <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+        <p className="text-sm text-[#8b95b0] mt-4 flex items-center gap-1.5">
+          <TrendingUp className="w-3.5 h-3.5 text-[#34d399]" />
           {chart.insight}
         </p>
       )}
@@ -204,21 +204,21 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
   if (chart.error) {
     return (
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 animate-slide-up">
-        <h3 className="text-lg font-semibold text-white mb-2">{chart.title}</h3>
-        <div className="flex items-center gap-2 text-red-400 bg-red-900/20 rounded-lg px-4 py-3">
+      <div className="bg-[#0e1225] border border-[#1c2340] rounded-2xl p-6 animate-slide-up">
+        <h3 className="text-base font-semibold text-white mb-3">{chart.title}</h3>
+        <div className="flex items-center gap-3 text-[#f87171] bg-[#f87171]/5 rounded-xl px-4 py-3 border border-[#f87171]/10">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium">Chart Error</p>
-            <p className="text-xs text-red-300 mt-0.5">{chart.error}</p>
+            <p className="text-xs text-[#fca5a5] mt-0.5">{chart.error}</p>
           </div>
         </div>
         {chart.sql_executed && (
           <details className="mt-3">
-            <summary className="text-xs text-slate-500 cursor-pointer">
+            <summary className="text-[11px] text-[#5a6380] cursor-pointer hover:text-[#8b95b0] transition-colors">
               View SQL
             </summary>
-            <pre className="mt-1 text-xs bg-slate-900 rounded-lg p-3 overflow-x-auto text-slate-400">
+            <pre className="mt-2 text-xs bg-[#080c18] rounded-xl p-4 overflow-x-auto text-[#5a6380] border border-[#151b30] font-mono">
               {chart.sql_executed}
             </pre>
           </details>
@@ -229,9 +229,9 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
   if (!chart.data?.length && chart.chart_type !== "metric") {
     return (
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 animate-slide-up">
-        <h3 className="text-lg font-semibold text-white mb-2">{chart.title}</h3>
-        <p className="text-sm text-slate-500">No data returned for this query.</p>
+      <div className="bg-[#0e1225] border border-[#1c2340] rounded-2xl p-6 animate-slide-up">
+        <h3 className="text-base font-semibold text-white mb-2">{chart.title}</h3>
+        <p className="text-sm text-[#5a6380]">No data returned for this query.</p>
       </div>
     );
   }
@@ -249,7 +249,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
       case "pie":
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={380}>
             <PieChart>
               <Pie
                 data={chart.data}
@@ -263,7 +263,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
                 label={({ name, percent }: { name: string; percent: number }) =>
                   `${name}: ${(percent * 100).toFixed(0)}%`
                 }
-                labelLine={{ stroke: "#475569" }}
+                labelLine={{ stroke: "#2a3355" }}
               >
                 {chart.data.map((_, index) => (
                   <Cell
@@ -274,7 +274,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
               </Pie>
               <Tooltip content={<CustomTooltip />} />
               <Legend
-                wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }}
+                wrapperStyle={{ fontSize: "11px", color: "#8b95b0" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -282,29 +282,29 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
       case "line":
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={420}>
             <LineChart data={chart.data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
               <XAxis
                 dataKey={xKey}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 label={
                   chart.x_label
-                    ? { value: chart.x_label, position: "insideBottom", offset: -5, fill: "#64748b" }
+                    ? { value: chart.x_label, position: "insideBottom", offset: -5, fill: "#5a6380" }
                     : undefined
                 }
               />
               <YAxis
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 tickFormatter={(v) => formatNumber(v)}
                 label={
                   chart.y_label
-                    ? { value: chart.y_label, angle: -90, position: "insideLeft", fill: "#64748b" }
+                    ? { value: chart.y_label, angle: -90, position: "insideLeft", fill: "#5a6380" }
                     : undefined
                 }
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: "12px" }} />
+              <Legend wrapperStyle={{ fontSize: "11px" }} />
               {yKeys.map((key, i) => (
                 <Line
                   key={key}
@@ -322,13 +322,13 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
       case "area":
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={420}>
             <AreaChart data={chart.data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey={xKey} tick={{ fill: "#94a3b8", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} tickFormatter={(v) => formatNumber(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
+              <XAxis dataKey={xKey} tick={{ fill: "#8b95b0", fontSize: 11 }} />
+              <YAxis tick={{ fill: "#8b95b0", fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: "12px" }} />
+              <Legend wrapperStyle={{ fontSize: "11px" }} />
               {yKeys.map((key, i) => (
                 <Area
                   key={key}
@@ -336,7 +336,7 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
                   dataKey={key}
                   stroke={COLORS[i % COLORS.length]}
                   fill={COLORS[i % COLORS.length]}
-                  fillOpacity={0.15}
+                  fillOpacity={0.12}
                   strokeWidth={2}
                 />
               ))}
@@ -346,18 +346,18 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
 
       case "scatter":
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={420}>
             <ScatterChart margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
               <XAxis
                 dataKey={xKey}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 name={chart.x_label || xKey}
                 type="number"
               />
               <YAxis
                 dataKey={yKeys[0]}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 name={chart.y_label || yKeys[0]}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -369,29 +369,29 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
       case "bar":
       default:
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={420}>
             <BarChart data={chart.data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
               <XAxis
                 dataKey={xKey}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 label={
                   chart.x_label
-                    ? { value: chart.x_label, position: "insideBottom", offset: -5, fill: "#64748b" }
+                    ? { value: chart.x_label, position: "insideBottom", offset: -5, fill: "#5a6380" }
                     : undefined
                 }
               />
               <YAxis
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                tick={{ fill: "#8b95b0", fontSize: 11 }}
                 tickFormatter={(v) => formatNumber(v)}
                 label={
                   chart.y_label
-                    ? { value: chart.y_label, angle: -90, position: "insideLeft", fill: "#64748b" }
+                    ? { value: chart.y_label, angle: -90, position: "insideLeft", fill: "#5a6380" }
                     : undefined
                 }
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: "12px" }} />
+              <Legend wrapperStyle={{ fontSize: "11px" }} />
               {yKeys.map((key, i) => (
                 <Bar
                   key={key}
@@ -408,33 +408,33 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
   };
 
   return (
-    <div className="glass-card-hover p-6 animate-slide-up transition-all duration-200">
+    <div className="glass-card-hover gradient-border p-6 animate-slide-up">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-white">{chart.title}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[15px] font-semibold text-white tracking-tight">{chart.title}</h3>
           {chart.insight && (
-            <p className="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+            <p className="text-[12px] text-[#8b95b0] mt-1.5 flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-[#34d399] flex-shrink-0" />
               {chart.insight}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
           {chart.row_count !== undefined && (
-            <span className="text-xs text-slate-500 bg-slate-900/80 px-2 py-1 rounded-md">
+            <span className="text-[10px] text-[#5a6380] bg-[#080c18] px-2 py-1 rounded-md border border-[#151b30]">
               <Table className="w-3 h-3 inline mr-1" />
               {chart.row_count} rows
             </span>
           )}
           <button
             onClick={() => setShowSql(!showSql)}
-            className="text-xs text-slate-500 hover:text-slate-300 bg-slate-900/80 px-2 py-1 rounded-md transition-colors"
+            className="text-[10px] text-[#5a6380] hover:text-[#8b95b0] bg-[#080c18] px-2 py-1 rounded-md border border-[#151b30] transition-all duration-200 hover:border-[#4f8fff]/15"
           >
             <Code className="w-3 h-3 inline mr-1" />
             SQL
             <ChevronDown
-              className={`w-3 h-3 inline ml-0.5 transition-transform ${
+              className={`w-3 h-3 inline ml-0.5 transition-transform duration-300 ${
                 showSql ? "rotate-180" : ""
               }`}
             />
@@ -442,15 +442,17 @@ export default function ChartRenderer({ chart }: { chart: ChartConfig }) {
         </div>
       </div>
 
-      {/* SQL Expandable */}
+      {/* SQL Expandable — lower in visual hierarchy */}
       {showSql && chart.sql_executed && (
-        <pre className="mb-4 text-xs bg-slate-950 rounded-lg p-3 overflow-x-auto text-emerald-400 border border-slate-700 font-mono">
+        <pre className="mb-4 text-[11px] bg-[#080c18] rounded-xl p-4 overflow-x-auto text-[#34d399]/70 border border-[#151b30] font-mono leading-relaxed">
           {chart.sql_executed}
         </pre>
       )}
 
       {/* Chart */}
-      {renderChart()}
+      <div className="mt-2 pt-4 border-t border-[#1c2340]/40">
+        {renderChart()}
+      </div>
     </div>
   );
 }

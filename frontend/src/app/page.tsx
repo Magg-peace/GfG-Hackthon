@@ -186,59 +186,61 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-[#06080f]">
       {/* Header */}
-      <header className="flex-shrink-0 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Sparkles className="w-5 h-5 text-white" />
+      <header className="flex-shrink-0 border-b border-[#1c2340]/60 bg-[#06080f]/92 backdrop-blur-2xl px-5 py-3 flex items-center justify-between z-20 shadow-[0_1px_0_rgba(79,143,255,0.03)]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4f8fff] via-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-[#4f8fff]/20 animate-glow">
+            <Sparkles className="w-[18px] h-[18px] text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-blue-400 tracking-tight">
-              ⭐ InsightAI
+            <h1 className="text-xl font-bold tracking-tight leading-none">
+              <span className="bg-gradient-to-r from-[#4f8fff] via-[#7dd3fc] to-[#34d399] bg-clip-text text-transparent">InsightAI</span>
             </h1>
-            <p className="text-xs text-slate-400 -mt-0.5">
+            <p className="text-[10px] text-[#5a6380] mt-0.5 tracking-widest uppercase font-medium">
               Conversational Business Intelligence
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* System status badges */}
           {health && (
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5">
               <span
-                className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${
+                className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg font-medium ${
                   health.postgres
-                    ? "bg-emerald-900/30 text-emerald-400 border border-emerald-700/30"
-                    : "bg-slate-800 text-slate-500"
+                    ? "bg-[#34d399]/8 text-[#34d399] border border-[#34d399]/15"
+                    : "bg-[#151b30] text-[#5a6380] border border-[#1c2340]"
                 }`}
                 title={health.postgres ? "PostgreSQL connected" : "Using SQLite"}
               >
+                <span className={`w-1.5 h-1.5 rounded-full ${health.postgres ? 'bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.5)]' : 'bg-[#5a6380]'}`} />
                 <Database className="w-3 h-3" />
                 {health.postgres ? "PostgreSQL" : "SQLite"}
               </span>
               <span
-                className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full ${
+                className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg font-medium ${
                   health.ollama
-                    ? "bg-blue-900/30 text-blue-400 border border-blue-700/30"
-                    : "bg-slate-800 text-slate-500"
+                    ? "bg-[#4f8fff]/8 text-[#4f8fff] border border-[#4f8fff]/15"
+                    : "bg-[#151b30] text-[#5a6380] border border-[#1c2340]"
                 }`}
                 title={health.ollama ? "Ollama (local LLM) running" : "Using Gemini API"}
               >
+                <span className={`w-1.5 h-1.5 rounded-full ${health.ollama ? 'bg-[#4f8fff] shadow-[0_0_6px_rgba(79,143,255,0.5)]' : 'bg-[#5a6380]'}`} />
                 <Cpu className="w-3 h-3" />
                 {health.ollama ? "Ollama" : "Gemini"}
               </span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Database className="w-3.5 h-3.5" />
-            <span>
+          <div className="flex items-center gap-2 text-[11px] text-[#8b95b0] bg-[#0e1225] px-3 py-1.5 rounded-lg border border-[#1c2340] font-medium">
+            <Database className="w-3.5 h-3.5 text-[#4f8fff]/60" />
+            <span className="max-w-[140px] truncate">
               {uploadedFile ? uploadedFile : "Sample Business Data"}
             </span>
           </div>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors lg:hidden"
+            className="p-2 text-[#5a6380] hover:text-white rounded-lg hover:bg-[#151b30] transition-all duration-200 lg:hidden"
           >
             {sidebarCollapsed ? (
               <PanelLeftOpen className="w-4 h-4" />
@@ -253,14 +255,14 @@ export default function Home() {
       <div className="flex-1 flex overflow-hidden">
         {/* Chat Sidebar */}
         <div
-          className={`flex-shrink-0 border-r border-slate-800 bg-slate-950/50 flex flex-col transition-all duration-300 ${
+          className={`flex-shrink-0 border-r border-[#1c2340]/50 bg-[#080c18] flex flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             sidebarCollapsed
               ? "w-0 overflow-hidden"
-              : "w-full lg:w-[320px]"
+              : "w-full lg:w-[340px]"
           }`}
         >
           {/* File Upload Area */}
-          <div className="flex-shrink-0 p-4 border-b border-slate-800">
+          <div className="flex-shrink-0 p-3.5 border-b border-[#1c2340]/40">
             <FileUpload
               onUploadComplete={handleUploadComplete}
               currentFile={uploadedFile}
@@ -280,7 +282,7 @@ export default function Home() {
         </div>
 
         {/* Dashboard Area */}
-        <div className="flex-1 overflow-y-auto bg-slate-950/50">
+        <div className="flex-1 overflow-y-auto bg-dashboard-gradient">
           {/* ML Insights Panel */}
           <div className="px-6 pt-6">
             <MLInsights />

@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import React, { useCallback, useState } from "react";
@@ -49,13 +51,15 @@ export default function FileUpload({
 
   if (currentFile) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-emerald-900/20 border border-emerald-700/40 rounded-xl">
-        <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-        <FileSpreadsheet className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-        <span className="text-xs text-emerald-300 truncate">{currentFile}</span>
+      <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#34d399]/5 border border-[#34d399]/12 rounded-xl">
+        <div className="w-6 h-6 rounded-lg bg-[#34d399]/10 flex items-center justify-center flex-shrink-0">
+          <CheckCircle className="w-3.5 h-3.5 text-[#34d399]" />
+        </div>
+        <FileSpreadsheet className="w-3.5 h-3.5 text-[#34d399]/70 flex-shrink-0" />
+        <span className="text-[11px] text-[#34d399] truncate font-medium">{currentFile}</span>
         <button
           onClick={onClearSession}
-          className="ml-auto flex-shrink-0 text-slate-500 hover:text-slate-300 transition-colors"
+          className="ml-auto flex-shrink-0 text-[#5a6380] hover:text-white transition-colors p-0.5 rounded hover:bg-[#151b30]"
           title="Switch to default dataset"
         >
           <X className="w-3.5 h-3.5" />
@@ -68,32 +72,34 @@ export default function FileUpload({
     <div>
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl px-4 py-4 text-center cursor-pointer transition-all ${
+        className={`border border-dashed rounded-xl px-3 py-3.5 text-center cursor-pointer transition-all duration-300 ${
           isDragActive
-            ? "border-blue-500 bg-blue-600/10"
-            : "border-slate-700 hover:border-slate-600 bg-slate-900/50"
-        } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
+            ? "border-[#4f8fff]/50 bg-[#4f8fff]/5 shadow-[0_0_30px_rgba(79,143,255,0.08)]"
+            : "border-[#1c2340] hover:border-[#2a3355] bg-[#0c1021] hover:bg-[#0e1225]"
+        } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
       >
         <input {...getInputProps()} />
         {isUploading ? (
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="w-6 h-6 text-brand-400 animate-spin" />
-            <p className="text-xs text-slate-400">Uploading & processing...</p>
+            <Loader2 className="w-5 h-5 text-[#4f8fff] animate-spin" />
+            <p className="text-[11px] text-[#5a6380]">Uploading & processing...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <Upload className="w-6 h-6 text-slate-500" />
-            <p className="text-xs text-slate-400">
+            <div className="w-8 h-8 rounded-lg bg-[#151b30] flex items-center justify-center">
+              <Upload className="w-4 h-4 text-[#5a6380]" />
+            </div>
+            <p className="text-[11px] text-[#8b95b0]">
               {isDragActive
                 ? "Drop your CSV here"
                 : "Upload CSV to analyze your own data"}
             </p>
-            <p className="text-[10px] text-slate-600">Max 50MB</p>
+            <p className="text-[9px] text-[#3a4460]">Max 50MB</p>
           </div>
         )}
       </div>
       {error && (
-        <p className="text-xs text-red-400 mt-2">{error}</p>
+        <p className="text-[11px] text-[#f87171] mt-2">{error}</p>
       )}
     </div>
   );
