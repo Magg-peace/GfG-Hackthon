@@ -76,8 +76,10 @@ def execute_query(sql: str, session_id: str | None = None) -> list[dict]:
 
     # Block dangerous keywords
     dangerous = ["DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE", "EXEC", "ATTACH", "DETACH"]
+    check_part = sql_stripped.split("--")[0].split("/*")[0]
     for kw in dangerous:
-        if kw in sql_stripped.split("--")[0].split("/*")[0]:
+        import re as _re
+        if _re.search(r"\b" + _re.escape(kw) + r"\b", check_part):
             raise ValueError(f"Query contains forbidden keyword: {kw}")
 
     cursor.execute(sql)

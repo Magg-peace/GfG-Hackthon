@@ -260,9 +260,9 @@ def execute_pg_query(sql: str, session_id: str | None = None) -> list[dict]:
     check_part = re.sub(r"--[^\n]*", "", sql_upper, flags=re.MULTILINE)
     check_part = re.sub(r"/\*.*?\*/", "", check_part, flags=re.DOTALL)
     forbidden = ["DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE",
-                 "TRUNCATE", "EXECUTE", "PERFORM", "COPY", "\\COPY"]
+                 "TRUNCATE", "EXECUTE", "PERFORM", "COPY"]
     for kw in forbidden:
-        if re.search(r"\b" + kw + r"\b", check_part):
+        if re.search(r"\b" + re.escape(kw) + r"\b", check_part):
             raise ValueError(f"Forbidden keyword in query: {kw}")
 
     conn = _get_conn()

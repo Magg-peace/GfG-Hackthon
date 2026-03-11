@@ -126,7 +126,7 @@ def _clean_json_response(text: str) -> str:
 
 async def generate_dashboard(query: str, schema: str, conversation_history: list[dict] | None = None) -> dict:
     """Use Gemini to convert a natural language query into SQL + chart configs."""
-    system = SYSTEM_PROMPT.format(schema=schema)
+    system = SYSTEM_PROMPT.format(schema=schema.replace('{', '{{').replace('}', '}}'))
 
     # Build conversation contents
     contents = []
@@ -184,10 +184,10 @@ async def generate_followup(
 ) -> dict:
     """Handle follow-up questions that refine or filter previous results."""
     prompt = FOLLOWUP_PROMPT.format(
-        previous_query=previous_query,
-        previous_sql=previous_sql,
-        followup=followup,
-        schema=schema,
+        previous_query=previous_query.replace('{', '{{').replace('}', '}}'),
+        previous_sql=previous_sql.replace('{', '{{').replace('}', '}}'),
+        followup=followup.replace('{', '{{').replace('}', '}}'),
+        schema=schema.replace('{', '{{').replace('}', '}}'),
     )
 
     response = _get_client().models.generate_content(
