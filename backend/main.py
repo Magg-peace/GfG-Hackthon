@@ -155,6 +155,26 @@ def _is_explain_query(query: str) -> bool:
     return any(p in q for p in explain_patterns)
 
 
+def _is_greeting_or_meta(query: str) -> str | None:
+    """Detect simple greetings / meta questions and return a friendly reply, or None."""
+    q = query.lower().strip().rstrip("?!.")
+    greetings = {"hi", "hello", "hey", "good morning", "good evening", "good afternoon", "howdy"}
+    if q in greetings:
+        return (
+            "Hello! I'm your Business Intelligence assistant. "
+            "I can help you visualise and explore the data that's been loaded. "
+            "Try asking a question about the dataset — for example, trends, comparisons, or top values."
+        )
+    meta = ["who are you", "what are you", "what can you do", "what is your name", "your name"]
+    if q in meta:
+        return (
+            "I'm a BI Dashboard assistant. I convert your natural language questions into SQL queries, "
+            "execute them against the loaded dataset, and generate charts and summaries. "
+            "Ask me anything about the data!"
+        )
+    return None
+
+
 @app.post("/api/query")
 async def query_dashboard(req: QueryRequest):
     """Convert a natural language question into SQL → execute → store results → return charts."""
@@ -167,6 +187,38 @@ async def query_dashboard(req: QueryRequest):
                 status_code=400,
                 detail="No data available. Please upload a CSV file or use the default dataset.",
             )
+
+        # Handle simple greetings / meta questions without hitting the LLM
+        greeting_reply = _is_greeting_or_meta(req.query)
+        if greeting_reply:
+            if not session_id:
+                session_id = str(uuid.uuid4())
+            if session_id not in sessions:
+                sessions[session_id] = {"history": []}
+            return {
+                "success": True,
+                "session_id": session_id,
+                "summary": greeting_reply,
+                "thinking": "",
+                "assumptions": [],
+                "charts": [],
+            }
+
+        # Pre-check relevance before hitting the LLM pipeline
+        from ollama_llm import check_query_relevance
+        relevance_err = check_query_relevance(req.query, schema)
+        if relevance_err:
+            if not session_id:
+                session_id = str(uuid.uuid4())
+            if session_id not in sessions:
+                sessions[session_id] = {"history": []}
+            return {
+                "success": False,
+                "session_id": session_id,
+                "error": relevance_err,
+                "summary": relevance_err,
+                "charts": [],
+            }
 
         # If the user is asking *about* the data rather than asking to visualise it,
         # route to the explain flow and return a helpful text answer.

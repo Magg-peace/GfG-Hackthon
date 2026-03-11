@@ -161,26 +161,77 @@ def _extract_json(text: str) -> dict:
         return json.loads(text)
 
 
+def _validate_chart_columns(chart: dict, result_columns: list[str]) -> None:
+    """Fix chart axis references to only use columns that actually exist in query results.
+    
+    Modifies the chart dict in-place — replaces hallucinated column names with the
+    closest matching real column, or falls back to the first available column.
+    """
+    if not result_columns or chart.get("chart_type") == "metric":
+        return
+
+    cols_lower = {c.lower(): c for c in result_columns}
+
+    def _fix_col(name: str | None) -> str | None:
+        if name is None:
+            return None
+        if name in result_columns:
+            return name
+        # Case-insensitive match
+        if name.lower() in cols_lower:
+            return cols_lower[name.lower()]
+        # Substring match (e.g. LLM returned "revenue" but column is "total_revenue")
+        for rc_lower, rc in cols_lower.items():
+            if name.lower() in rc_lower or rc_lower in name.lower():
+                return rc
+        # Fallback to first column
+        return result_columns[0] if result_columns else name
+
+    if "x_axis" in chart and chart["x_axis"]:
+        chart["x_axis"] = _fix_col(chart["x_axis"])
+
+    if "y_axis" in chart and isinstance(chart["y_axis"], list):
+        chart["y_axis"] = [_fix_col(y) for y in chart["y_axis"]]
+    elif "y_axis" in chart and isinstance(chart["y_axis"], str):
+        chart["y_axis"] = [_fix_col(chart["y_axis"])]
+
+    if "color_by" in chart and chart["color_by"]:
+        fixed = _fix_col(chart["color_by"])
+        # If color_by doesn't match any column, remove it rather than guessing
+        if fixed == result_columns[0] and chart["color_by"].lower() not in cols_lower:
+            chart["color_by"] = None
+        else:
+            chart["color_by"] = fixed
+
+    if "value_column" in chart and chart["value_column"]:
+        chart["value_column"] = _fix_col(chart["value_column"])
+
+
 # ── System prompts ─────────────────────────────────────────────────────────────
 
 _SQL_SYSTEM = """You are an expert SQL analyst. Given a {dialect} database schema and a user question,
 generate a single {dialect} SELECT query that answers the question accurately.
 
-RULES:
+CRITICAL RULES:
+- You may ONLY generate queries against the tables and columns listed in the DATABASE SCHEMA below.
 - Generate ONLY a SELECT or WITH/SELECT query. Never INSERT, UPDATE, DELETE, DROP, or ALTER.
 - Use standard {dialect} syntax.
 - If {dialect} is PostgreSQL, use double-quoted identifiers and TO_CHAR / DATE_TRUNC for dates.
 - If {dialect} is SQLite, use double-quoted identifiers and strftime for dates. Do NOT use TO_CHAR or DATE_TRUNC.
 - Always alias computed columns with descriptive names.
 - Limit results to 500 rows maximum.
-- If the question cannot be answered from the schema, set "error" to a clear explanation.
+- NEVER invent or assume tables, columns, or data that do not exist in the schema.
+- NEVER use hardcoded/fabricated values in SELECT that are not derived from actual table data.
+- If the question is about topics NOT present in the database (e.g. weather, general knowledge, coding, personal questions, politics, sports, entertainment, or anything unrelated to the schema), you MUST set "error" to: "This question is not related to the available dataset. The current dataset contains information about [briefly describe tables]. Please ask a question related to this data."
+- If the question CANNOT be answered from the schema because the required columns/tables don't exist, set "error" to a clear explanation of what data is missing.
+- Only reference column names that EXACTLY match those in the schema.
 
 DATABASE SCHEMA ({dialect}):
 {schema}
 
 Respond ONLY with valid JSON (no markdown fences):
 {{
-  "thinking": "Brief reasoning about which tables/columns to use",
+  "thinking": "Brief reasoning about which tables/columns to use, or why the question cannot be answered from this data",
   "sql": "SELECT ...",
   "error": null
 }}"""
@@ -198,11 +249,16 @@ CHART TYPES:
 - "table"   – detailed row-level data
 - "metric"  – single KPI number
 
-RULES:
+CRITICAL RULES:
 - Return 1–3 chart objects appropriate for the data.
+- You MUST ONLY use column names that appear in the "Result columns" list provided. NEVER invent column names.
+- The x_axis and y_axis values MUST exactly match column names from the actual query results.
+- The summary MUST be based strictly on the actual data rows provided. Do NOT fabricate numbers, trends, or insights.
+- If the sample rows contain numeric values, reference those actual values in your summary — do not make up statistics.
 - For metric charts, use: {{ "title":..., "chart_type":"metric", "sql":"...", 
   "value_column":"col", "label":"...", "prefix":"", "suffix":"", "insight":"..." }}
-- Keep insight to one actionable sentence.
+- Keep insight to one actionable sentence derived from the actual data.
+- Do NOT hallucinate or assume data patterns not visible in the sample rows.
 
 Respond ONLY with valid JSON (no markdown fences):
 {{
@@ -218,10 +274,10 @@ Respond ONLY with valid JSON (no markdown fences):
       "y_label": "Human Label",
       "color_by": null,
       "highlight": null,
-      "insight": "One-sentence insight."
+      "insight": "One-sentence insight based on actual data."
     }}
   ],
-  "summary": "2–3 sentence natural language answer to the user's question.",
+  "summary": "2–3 sentence natural language answer to the user's question, based ONLY on the actual data returned.",
   "assumptions": []
 }}"""
 
@@ -261,6 +317,13 @@ Current user request: {followup}
 DATABASE SCHEMA ({dialect}):
 {schema}
 
+CRITICAL RULES:
+- You may ONLY generate queries against the tables and columns listed in the DATABASE SCHEMA above.
+- NEVER invent tables, columns, or data not present in the schema.
+- If the follow-up question is about topics NOT present in the database (e.g. weather, general knowledge, coding, personal questions, or anything unrelated to the schema), set "error" to: "This question is not related to the available dataset. Please ask a question related to the data shown in the schema."
+- Only reference column names that EXACTLY match those in the schema.
+- Base your summary and insights ONLY on actual data — do NOT fabricate numbers or trends.
+
 Modify or extend the previous SQL to address the new request. Use {dialect} syntax.
 Respond ONLY with valid JSON (no markdown fences):
 {{
@@ -274,11 +337,90 @@ Respond ONLY with valid JSON (no markdown fences):
 
 # ── Public API: SQL generation ─────────────────────────────────────────────────
 
+def _extract_table_names(schema: str) -> list[str]:
+    """Extract table names from the schema text."""
+    import re as _re
+    tables = _re.findall(r'Table:\s*(\S+)', schema)
+    if not tables:
+        tables = _re.findall(r'CREATE TABLE\s+"?([^\s"(]+)"?', schema, _re.IGNORECASE)
+    return [t.lower().replace('_', ' ') for t in tables]
+
+
+def _extract_column_names(schema: str) -> list[str]:
+    """Extract column names from the schema text."""
+    import re as _re
+    cols = _re.findall(r'Columns:\s*(.+)', schema)
+    col_names = []
+    for col_line in cols:
+        for c in col_line.split(','):
+            name = c.strip().split('(')[0].strip().lower().replace('_', ' ')
+            if name:
+                col_names.append(name)
+    return col_names
+
+
+def check_query_relevance(query: str, schema: str) -> str | None:
+    """Check if the user query is relevant to the available dataset.
+    
+    Returns None if the query is relevant, or an error message string if it's irrelevant.
+    """
+    q = query.lower().strip()
+    
+    # Common off-topic / general-knowledge patterns
+    offtopic_patterns = [
+        r"\b(weather|temperature|forecast|rain|sunny)\b",
+        r"\b(who is|who was|who are|tell me about)\b.*\b(president|prime minister|celebrity|actor|singer|politician)\b",
+        r"\b(write|compose|create)\b.*\b(poem|essay|story|song|code|program|script)\b",
+        r"\b(recipe|cook|food|restaurant)\b",
+        r"\b(joke|funny|humor)\b",
+        r"\b(translate|translation)\b",
+        r"\b(capital of|population of|area of)\b",
+        r"\b(movie|film|tv show|series|anime|manga|game)\b",
+        r"\b(stock price|crypto|bitcoin|ethereum)\b",
+        r"\b(travel|flight|hotel|booking)\b",
+        r"\b(health|medicine|doctor|symptom|disease)\b",
+        r"\b(sports|football|cricket|basketball|tennis)\b.*\b(score|match|team|player|winner)\b",
+        r"\b(news|latest|current events|headline)\b",
+        r"\b(how to|tutorial|guide)\b(?!.*(chart|graph|plot|visuali|data|sql|query|show|display|compare|trend|top|bottom|average|sum|count|total))",
+        r"\b(hi|hello|hey|good morning|good evening|how are you|what's up)\b$",
+        r"\b(your name|who are you|what are you|what can you do)\b",
+        r"\b(math|calculate|solve|equation)\b(?!.*(data|column|table|row|sum|average|count))",
+    ]
+    
+    for pattern in offtopic_patterns:
+        if re.search(pattern, q):
+            # Before flagging as off-topic, check if the query also mentions dataset-related terms
+            table_names = _extract_table_names(schema)
+            col_names = _extract_column_names(schema)
+            dataset_terms = table_names + col_names
+            
+            # If the query mentions any dataset term, it's likely relevant
+            q_words = set(q.split())
+            for term in dataset_terms:
+                if term in q or any(w in term for w in q_words if len(w) > 2):
+                    return None  # Query references dataset content — treat as relevant
+            
+            # Build a friendly description of available data
+            tables_desc = ", ".join(table_names) if table_names else "the uploaded data"
+            return (
+                f"This question doesn't appear to be related to the available dataset. "
+                f"The current data contains information about: {tables_desc}. "
+                f"Please ask a question related to this data — for example, trends, comparisons, "
+                f"top/bottom values, or summaries of the available columns."
+            )
+    
+    return None  # Likely relevant
+
 async def generate_sql(query: str, schema: str, dialect: str = "PostgreSQL") -> dict:
     """Generate a SELECT query for *query* given *schema*.
     
     Returns: {"thinking": ..., "sql": ..., "error": ...}
     """
+    # Pre-check: reject clearly irrelevant queries before calling the LLM
+    relevance_err = check_query_relevance(query, schema)
+    if relevance_err:
+        return {"thinking": "Query is not related to the available data.", "sql": "", "error": relevance_err}
+
     system = _SQL_SYSTEM.format(schema=schema, dialect=dialect)
     model = _pick_model(_SQL_MODEL_CHAIN, OLLAMA_SQL_MODEL)
 
@@ -332,6 +474,8 @@ async def generate_charts(
         f"SQL executed:\n{sql}\n\n"
         f"Result columns: {result_columns}\n\n"
         f"Sample rows (first 5):\n{sample_preview}\n\n"
+        f"IMPORTANT: You MUST only use column names from this exact list: {result_columns}. "
+        f"Do NOT invent column names. Base your summary ONLY on the actual sample data shown above.\n\n"
         f"Design the best charts to answer this question."
     )
 
@@ -351,9 +495,11 @@ async def generate_charts(
                 )
                 result = _extract_json(raw2)
             # Patch each chart's SQL to use the actual executed SQL
+            # and validate that chart axes reference real columns
             for chart in result.get("charts", []):
                 if not chart.get("sql"):
                     chart["sql"] = sql
+                _validate_chart_columns(chart, result_columns)
             result.setdefault("error", None)
             return result
         except (json.JSONDecodeError, ValueError):
@@ -363,7 +509,10 @@ async def generate_charts(
 
     # Gemini fallback
     try:
-        return await _gemini_generate_charts(query, schema, sql, result_columns, sample_rows)
+        result = await _gemini_generate_charts(query, schema, sql, result_columns, sample_rows)
+        for chart in result.get("charts", []):
+            _validate_chart_columns(chart, result_columns)
+        return result
     except Exception as exc:
         return {"thinking": "", "charts": [], "summary": "", "assumptions": [], "error": f"No LLM available for chart generation. Detail: {exc}"}
 
@@ -381,6 +530,11 @@ async def generate_followup_sql(
 
     Returns: {"thinking": ..., "charts": [...], "summary": ..., "assumptions": [...], "error": ...}
     """
+    # Pre-check: reject clearly irrelevant follow-up queries
+    relevance_err = check_query_relevance(followup, schema)
+    if relevance_err:
+        return {"thinking": "Follow-up query is not related to the available data.", "charts": [], "summary": "", "assumptions": [], "error": relevance_err}
+
     system = _FOLLOWUP_SYSTEM.format(
         previous_query=previous_query,
         previous_sql=previous_sql,

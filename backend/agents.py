@@ -186,10 +186,31 @@ async def chart_generator_node(state: AgentState) -> dict:
 
     charts = result.get("charts", [])
     # Attach actual data to every chart so the frontend can render it immediately
+    # and verify that axis references match real columns
     for chart in charts:
         chart.setdefault("data", rows)
         chart.setdefault("sql_executed", sql)
         chart.setdefault("row_count", len(rows))
+        # Ensure x_axis and y_axis reference real columns from the results
+        if columns:
+            if chart.get("x_axis") and chart["x_axis"] not in columns:
+                # Try case-insensitive match
+                match = next((c for c in columns if c.lower() == chart["x_axis"].lower()), None)
+                chart["x_axis"] = match or columns[0]
+            if chart.get("y_axis"):
+                fixed_y = []
+                for y in chart["y_axis"]:
+                    if y in columns:
+                        fixed_y.append(y)
+                    else:
+                        match = next((c for c in columns if c.lower() == y.lower()), None)
+                        if match:
+                            fixed_y.append(match)
+                        elif len(columns) > 1:
+                            # Fallback to the first numeric-looking column that isn't x_axis
+                            fallback = next((c for c in columns if c != chart.get("x_axis")), columns[-1])
+                            fixed_y.append(fallback)
+                chart["y_axis"] = fixed_y if fixed_y else [columns[-1]] if len(columns) > 1 else columns
 
     llm_error = result.get("error") if not charts else None
 
