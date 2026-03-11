@@ -95,11 +95,11 @@ function PredictionPanel() {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Insurer</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Insurer</label>
           <select
             value={selectedInsurer}
             onChange={(e) => setSelectedInsurer(e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           >
             {insurers.map((ins) => (
               <option key={ins} value={ins}>
@@ -109,75 +109,75 @@ function PredictionPanel() {
           </select>
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Year</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Year</label>
           <input
             type="number"
             value={year}
             onChange={(e) => setYear(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Total Claims</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Total Claims</label>
           <input
             type="number"
             value={totalClaims}
             onChange={(e) => setTotalClaims(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Claims Amount (Cr)</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Claims Amount (Cr)</label>
           <input
             type="number"
             value={totalAmt}
             onChange={(e) => setTotalAmt(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Paid Amount (Cr)</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Paid Amount (Cr)</label>
           <input
             type="number"
             value={paidAmt}
             onChange={(e) => setPaidAmt(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Repudiated</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Repudiated</label>
           <input
             type="number"
             value={repudiated}
             onChange={(e) => setRepudiated(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Rejected</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Rejected</label>
           <input
             type="number"
             value={rejected}
             onChange={(e) => setRejected(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Pending (Start)</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Pending (Start)</label>
           <input
             type="number"
             value={pendingStart}
             onChange={(e) => setPendingStart(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#9CA3AF] mb-1.5 block font-medium uppercase tracking-wider">Pending (End)</label>
+          <label className="text-[11px] text-[#5a6380] mb-1.5 block font-medium uppercase tracking-wider">Pending (End)</label>
           <input
             type="number"
             value={pendingEnd}
             onChange={(e) => setPendingEnd(+e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-lg px-3 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:border-[#A5B4FC]/60 transition-colors"
+            className="w-full bg-[#0c1021] border border-[#1c2340] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#4f8fff]/40 transition-colors"
           />
         </div>
       </div>
@@ -185,7 +185,7 @@ function PredictionPanel() {
       <button
         onClick={handlePredict}
         disabled={loading || !selectedInsurer}
-        className="w-full py-2.5 bg-[#818CF8] hover:bg-[#6366F1] disabled:bg-[#F1F5F9] disabled:text-[#9CA3AF] rounded-xl text-sm font-medium text-white transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#818CF8]/15 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+        className="w-full py-2.5 bg-[#4f8fff] hover:bg-[#2d6ae0] disabled:bg-[#151b30] disabled:text-[#5a6380] rounded-xl text-sm font-medium text-white transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#4f8fff]/15 hover:-translate-y-0.5 disabled:hover:translate-y-0"
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -205,7 +205,7 @@ function PredictionPanel() {
               backgroundColor: RISK_COLORS[result.risk_level] + "08",
             }}
           >
-            <p className="text-[11px] text-[#9CA3AF] mb-1.5 uppercase tracking-wider font-medium">
+            <p className="text-[11px] text-[#5a6380] mb-1.5 uppercase tracking-wider font-medium">
               Predicted Settlement Ratio
             </p>
             <p
@@ -226,15 +226,15 @@ function PredictionPanel() {
           </div>
 
           {/* Risk Tier Confidence */}
-          <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-4">
-            <p className="text-[11px] text-[#9CA3AF] mb-3 uppercase tracking-wider font-medium">
+          <div className="bg-[#0c1021] border border-[#1c2340] rounded-xl p-4">
+            <p className="text-[11px] text-[#5a6380] mb-3 uppercase tracking-wider font-medium">
               Risk Classification Confidence
             </p>
             {Object.entries(result.risk_classification.confidence).map(
               ([tier, pct]) => (
                 <div key={tier} className="flex items-center gap-2 mb-2.5">
-                  <span className="text-[11px] text-[#6B7280] w-24">{tier}</span>
-                  <div className="flex-1 h-1.5 bg-[#E5E7EB] rounded-full overflow-hidden">
+                  <span className="text-[11px] text-[#8b95b0] w-24">{tier}</span>
+                  <div className="flex-1 h-1.5 bg-[#151b30] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -243,7 +243,7 @@ function PredictionPanel() {
                       }}
                     />
                   </div>
-                  <span className="text-[11px] text-[#1F2937] w-12 text-right font-medium">
+                  <span className="text-[11px] text-white w-12 text-right font-medium">
                     {pct}%
                   </span>
                 </div>
@@ -271,34 +271,34 @@ function AnomalyPanel() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 text-[#818CF8] animate-spin" />
+        <Loader2 className="w-5 h-5 text-[#4f8fff] animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[11px] text-[#9CA3AF] mb-3">
+      <p className="text-[11px] text-[#5a6380] mb-3">
         {anomalies.length} anomalous patterns detected by Isolation Forest
       </p>
       {anomalies.map((a, i) => (
         <div
           key={i}
-          className="bg-[#FFFBEB] border border-[#FDE68A]/30 rounded-xl px-3.5 py-3 transition-all duration-300 hover:border-[#FDE68A]/60 hover:bg-[#FEF9C3]/50"
+          className="bg-[#0c1021] border border-[#fbbf24]/10 rounded-xl px-3.5 py-3 transition-all duration-300 hover:border-[#fbbf24]/25 hover:bg-[#151b30]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
-              <span className="text-sm font-medium text-[#1F2937]">
+              <span className="text-sm font-medium text-white">
                 {a.insurer}
               </span>
-              <span className="text-[11px] text-[#9CA3AF]">{a.year}</span>
+              <span className="text-[11px] text-[#5a6380]">{a.year}</span>
             </div>
             <span className="text-[11px] font-mono text-[#D97706]">
               {formatPct(a.settlement_ratio)}
             </span>
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-1.5 pl-5 leading-relaxed">{a.reason}</p>
+          <p className="text-[11px] text-[#8b95b0] mt-1.5 pl-5 leading-relaxed">{a.reason}</p>
         </div>
       ))}
     </div>
@@ -320,7 +320,7 @@ function OverviewPanel() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 text-[#818CF8] animate-spin" />
+        <Loader2 className="w-5 h-5 text-[#4f8fff] animate-spin" />
       </div>
     );
   }
@@ -338,7 +338,7 @@ function OverviewPanel() {
 
   return (
     <div className="space-y-4">
-      <p className="text-[11px] text-[#9CA3AF]">
+      <p className="text-[11px] text-[#5a6380]">
         Top 15 insurers by settlement ratio ({latestYear})
       </p>
 
@@ -347,16 +347,16 @@ function OverviewPanel() {
           data={latestData}
           margin={{ top: 5, right: 10, left: 10, bottom: 60 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
           <XAxis
             dataKey="insurer"
-            tick={{ fill: "#6B7280", fontSize: 10 }}
+            tick={{ fill: "#8b95b0", fontSize: 10 }}
             angle={-45}
             textAnchor="end"
             interval={0}
           />
           <YAxis
-            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tick={{ fill: "#8b95b0", fontSize: 11 }}
             domain={[0.8, 1]}
             tickFormatter={(v: number) => formatPct(v)}
           />
@@ -365,15 +365,15 @@ function OverviewPanel() {
               if (!active || !payload?.length) return null;
               const d = payload[0].payload as MLOverviewItem;
               return (
-                <div className="bg-white/98 border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-xl text-xs">
-                  <p className="font-medium text-[#1F2937]">{d.insurer}</p>
-                  <p className="text-[#059669]">
+                <div className="bg-[#0c1021]/95 border border-[#1c2340] rounded-lg px-3 py-2 shadow-xl text-xs">
+                  <p className="font-medium text-white">{d.insurer}</p>
+                  <p className="text-[#34d399]">
                     Actual: {formatPct(d.actual_ratio)}
                   </p>
-                  <p className="text-[#818CF8]">
+                  <p className="text-[#4f8fff]">
                     Predicted: {formatPct(d.predicted_ratio)}
                   </p>
-                  <p className="text-[#9CA3AF]">
+                  <p className="text-[#5a6380]">
                     Claims: {d.total_claims.toLocaleString()}
                   </p>
                 </div>
@@ -397,7 +397,7 @@ function OverviewPanel() {
           <Bar
             dataKey="predicted_ratio"
             name="Predicted"
-            fill="#818CF880"
+            fill="#4f8fff60"
             radius={[3, 3, 0, 0]}
             maxBarSize={30}
           />
@@ -405,18 +405,18 @@ function OverviewPanel() {
       </ResponsiveContainer>
 
       {/* Scatter: Actual vs Predicted */}
-      <p className="text-[11px] text-[#9CA3AF] mt-4">
+      <p className="text-[11px] text-[#5a6380] mt-4">
         Model Accuracy: Actual vs Predicted (all years)
       </p>
       <ResponsiveContainer width="100%" height={250}>
         <ScatterChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#151b30" />
           <XAxis
             dataKey="actual_ratio"
             name="Actual"
             type="number"
             domain={[0.6, 1]}
-            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tick={{ fill: "#8b95b0", fontSize: 11 }}
             tickFormatter={(v: number) => formatPct(v)}
           />
           <YAxis
@@ -424,7 +424,7 @@ function OverviewPanel() {
             name="Predicted"
             type="number"
             domain={[0.6, 1]}
-            tick={{ fill: "#6B7280", fontSize: 11 }}
+            tick={{ fill: "#8b95b0", fontSize: 11 }}
             tickFormatter={(v: number) => formatPct(v)}
           />
           <Tooltip
@@ -432,10 +432,10 @@ function OverviewPanel() {
               if (!active || !payload?.length) return null;
               const d = payload[0].payload as MLOverviewItem;
               return (
-                <div className="bg-white/98 border border-[#E5E7EB] rounded-lg px-3 py-2 shadow-xl text-xs">
-                  <p className="font-medium text-[#1F2937]">{d.insurer} ({d.year})</p>
-                  <p className="text-[#059669]">Actual: {formatPct(d.actual_ratio)}</p>
-                  <p className="text-[#818CF8]">Predicted: {formatPct(d.predicted_ratio)}</p>
+                <div className="bg-[#0c1021]/95 border border-[#1c2340] rounded-lg px-3 py-2 shadow-xl text-xs">
+                  <p className="font-medium text-white">{d.insurer} ({d.year})</p>
+                  <p className="text-[#34d399]">Actual: {formatPct(d.actual_ratio)}</p>
+                  <p className="text-[#4f8fff]">Predicted: {formatPct(d.predicted_ratio)}</p>
                 </div>
               );
             }}
@@ -477,38 +477,38 @@ export default function MLInsights() {
       {/* Header */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-[#F8FAFC]/60 transition-all duration-300"
+        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-[#0e1225]/60 transition-all duration-300"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C7D2FE]/40 to-[#A5B4FC]/20 flex items-center justify-center border border-[#C7D2FE]/30">
-            <Brain className="w-4 h-4 text-[#818CF8]" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#a78bfa]/20 to-[#4f8fff]/15 flex items-center justify-center border border-[#a78bfa]/20">
+            <Brain className="w-4 h-4 text-[#a78bfa]" />
           </div>
           <div className="text-left">
-            <h3 className="text-sm font-semibold text-[#1F2937] tracking-tight">ML Insights</h3>
-            <p className="text-[10px] text-[#9CA3AF]">
+            <h3 className="text-sm font-semibold text-white tracking-tight">ML Insights</h3>
+            <p className="text-[10px] text-[#5a6380]">
               Insurance Claims Prediction & Anomaly Detection
             </p>
           </div>
         </div>
         {collapsed ? (
-          <ChevronDown className="w-4 h-4 text-[#9CA3AF]" />
+          <ChevronDown className="w-4 h-4 text-[#5a6380]" />
         ) : (
-          <ChevronUp className="w-4 h-4 text-[#9CA3AF]" />
+          <ChevronUp className="w-4 h-4 text-[#5a6380]" />
         )}
       </button>
 
       {!collapsed && (
         <div className="px-5 pb-5 animate-fade-in">
           {/* Tabs */}
-          <div className="flex gap-1 mb-4 bg-[#F8FAFC] rounded-xl p-1 border border-[#E5E7EB]/60">
+          <div className="flex gap-1 mb-4 bg-[#080c18] rounded-xl p-1 border border-[#1c2340]/60">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${
                   activeTab === tab.id
-                    ? "bg-white text-[#1F2937] shadow-sm border border-[#E5E7EB]/60"
-                    : "text-[#9CA3AF] hover:text-[#1F2937] hover:bg-[#F1F5F9]/60"
+                    ? "bg-[#0c1021] text-white shadow-sm border border-[#1c2340]/60"
+                    : "text-[#5a6380] hover:text-white hover:bg-[#0e1225]/60"
                 }`}
               >
                 <tab.icon className="w-3 h-3" />
@@ -526,3 +526,4 @@ export default function MLInsights() {
     </div>
   );
 }
+

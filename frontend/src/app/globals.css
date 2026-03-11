@@ -3,30 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #F8FAFC;
-  --bg-secondary: #F1F5F9;
-  --bg-tertiary: #E2E8F0;
-  --bg-card: #FFFFFF;
-  --bg-card-elevated: #FFFFFF;
-  --border-color: #E5E7EB;
-  --border-subtle: #F1F5F9;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --accent: #A5B4FC;
-  --accent-hover: #818CF8;
-  --accent-dark: #6366F1;
-  --accent-glow: rgba(165, 180, 252, 0.25);
-  --secondary: #93C5FD;
-  --highlight: #FBCFE8;
-  --success: #BBF7D0;
-  --success-dark: #34D399;
-  --warning: #FDE68A;
-  --warning-dark: #FBBF24;
-  --error: #FECACA;
-  --error-dark: #F87171;
-  --sidebar-bg: #FFFFFF;
-  --header-bg: rgba(248, 250, 252, 0.85);
+  --bg-primary: #06080f;
+  --bg-secondary: #0a0e1a;
+  --bg-tertiary: #0c1021;
+  --bg-card: #0c1021;
+  --bg-card-elevated: #0e1225;
+  --border-color: #1c2340;
+  --border-subtle: #151b30;
+  --text-primary: #ffffff;
+  --text-secondary: #c4ccdf;
+  --text-muted: #8b95b0;
+  --accent: #4f8fff;
+  --accent-hover: #3a7bf5;
+  --accent-dark: #2d6ae0;
+  --accent-glow: rgba(79, 143, 255, 0.25);
+  --secondary: #34d399;
+  --highlight: #fbbf24;
+  --success: #34d399;
+  --success-dark: #059669;
+  --warning: #fbbf24;
+  --warning-dark: #d97706;
+  --error: #f87171;
+  --error-dark: #dc2626;
+  --sidebar-bg: #080c18;
+  --header-bg: rgba(6, 8, 15, 0.85);
 }
 
 * {
@@ -34,7 +34,7 @@
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -48,7 +48,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar — soft pastel style */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -57,17 +57,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(165, 180, 252, 0.3);
+  background: rgba(79, 143, 255, 0.2);
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(165, 180, 252, 0.5);
+  background: rgba(79, 143, 255, 0.4);
 }
 
 /* Selection styling */
 ::selection {
-  background: rgba(165, 180, 252, 0.35);
-  color: #1F2937;
+  background: rgba(79, 143, 255, 0.35);
+  color: #ffffff;
 }
 
 /* Animations */
@@ -87,8 +87,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 12px rgba(165, 180, 252, 0.2); }
-  50% { box-shadow: 0 0 28px rgba(165, 180, 252, 0.4); }
+  0%, 100% { box-shadow: 0 0 12px rgba(79, 143, 255, 0.15); }
+  50% { box-shadow: 0 0 28px rgba(79, 143, 255, 0.35); }
 }
 
 @keyframes gradient-shift {
@@ -133,40 +133,43 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background: linear-gradient(90deg, #151b30 25%, #1c2340 50%, #151b30 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite;
   border-radius: 6px;
 }
 
-/* Card style — clean white with soft shadow */
+/* Card style — dark glassmorphism */
 .glass-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: rgba(12, 16, 33, 0.8);
+  border: 1px solid #1c2340;
   border-radius: 16px;
+  backdrop-filter: blur(20px);
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 16px rgba(0, 0, 0, 0.04);
+    0 4px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .glass-card-hover {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: rgba(12, 16, 33, 0.8);
+  border: 1px solid #1c2340;
   border-radius: 16px;
+  backdrop-filter: blur(20px);
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04),
-    0 4px 16px rgba(0, 0, 0, 0.04);
+    0 4px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glass-card-hover:hover {
   box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(165, 180, 252, 0.15);
-  border-color: rgba(165, 180, 252, 0.3);
+    0 8px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(79, 143, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-color: rgba(79, 143, 255, 0.2);
   transform: translateY(-2px) scale(1.005);
 }
 
-/* Gradient border effect for featured cards */
+/* Gradient border effect */
 .gradient-border {
   position: relative;
 }
@@ -178,10 +181,10 @@ body {
   padding: 1px;
   background: linear-gradient(
     135deg,
-    rgba(165, 180, 252, 0.3),
-    rgba(147, 197, 253, 0.2),
-    rgba(251, 207, 232, 0.15),
-    rgba(165, 180, 252, 0.3)
+    rgba(79, 143, 255, 0.3),
+    rgba(52, 211, 153, 0.2),
+    rgba(251, 191, 36, 0.15),
+    rgba(79, 143, 255, 0.3)
   );
   background-size: 300% 300%;
   animation: gradient-shift 8s ease infinite;
@@ -195,11 +198,11 @@ body {
 /* Recharts overrides */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: #E5E7EB;
+  stroke: #151b30;
 }
 
 .recharts-text {
-  fill: #6B7280;
+  fill: #8b95b0;
   font-size: 11px;
 }
 
@@ -221,13 +224,13 @@ body {
   line-height: 1.6;
 }
 .chat-message strong {
-  color: #1F2937;
+  color: #ffffff;
   font-weight: 600;
 }
 
 /* Input field glow effect */
 .input-glow:focus {
-  box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.25);
+  box-shadow: 0 0 0 3px rgba(79, 143, 255, 0.2);
 }
 
 /* Button glow effect */
@@ -236,12 +239,12 @@ body {
 }
 .btn-glow:hover {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 4px 20px rgba(165, 180, 252, 0.25);
+  box-shadow: 0 4px 20px rgba(79, 143, 255, 0.2);
 }
 
 /* Gradient backgrounds */
 .bg-dashboard-gradient {
-  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 50%, #EFF2F7 100%);
+  background: linear-gradient(180deg, #06080f 0%, #080c18 50%, #0a0e1a 100%);
 }
 
 /* Section label style */
@@ -255,20 +258,20 @@ body {
 
 /* Insight highlight card */
 .insight-card {
-  background: linear-gradient(135deg, rgba(165, 180, 252, 0.1) 0%, rgba(147, 197, 253, 0.08) 100%);
-  border: 1px solid rgba(165, 180, 252, 0.2);
+  background: linear-gradient(135deg, rgba(79, 143, 255, 0.08) 0%, rgba(52, 211, 153, 0.05) 100%);
+  border: 1px solid rgba(79, 143, 255, 0.15);
   border-radius: 14px;
 }
 
 /* Premium divider */
 .divider-glow {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(165, 180, 252, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(79, 143, 255, 0.3), transparent);
 }
 
-/* Focus ring for accessible elements */
+/* Focus ring */
 .focus-ring:focus-visible {
-  outline: 2px solid rgba(165, 180, 252, 0.5);
+  outline: 2px solid rgba(79, 143, 255, 0.5);
   outline-offset: 2px;
 }
 

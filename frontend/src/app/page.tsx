@@ -186,18 +186,18 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="h-screen flex flex-col bg-[#06080f]">
       {/* Header */}
-      <header className="flex-shrink-0 border-b border-[#E5E7EB] bg-white/85 backdrop-blur-2xl px-5 py-3 flex items-center justify-between z-20 shadow-sm">
+      <header className="flex-shrink-0 border-b border-[#1c2340] bg-[#06080f]/85 backdrop-blur-2xl px-5 py-3 flex items-center justify-between z-20">
         <div className="flex items-center gap-3.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A5B4FC] via-[#818CF8] to-[#6366F1] flex items-center justify-center shadow-lg shadow-[#A5B4FC]/25">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4f8fff] via-[#7dd3fc] to-[#34d399] flex items-center justify-center shadow-lg shadow-[#4f8fff]/25">
             <Sparkles className="w-[18px] h-[18px] text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight leading-none">
-              <span className="bg-gradient-to-r from-[#6366F1] via-[#818CF8] to-[#A5B4FC] bg-clip-text text-transparent">VizPulse</span>
+              <span className="bg-gradient-to-r from-[#4f8fff] via-[#7dd3fc] to-[#34d399] bg-clip-text text-transparent">VizPulse</span>
             </h1>
-            <p className="text-[10px] text-[#9CA3AF] mt-0.5 tracking-widest uppercase font-medium">
+            <p className="text-[10px] text-[#5a6380] mt-0.5 tracking-widest uppercase font-medium">
               Conversational Business Intelligence
             </p>  
           </div>
@@ -209,38 +209,38 @@ export default function Home() {
               <span
                 className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg font-medium ${
                   health.postgres
-                    ? "bg-[#BBF7D0]/40 text-[#059669] border border-[#BBF7D0]"
-                    : "bg-[#F1F5F9] text-[#9CA3AF] border border-[#E5E7EB]"
+                    ? "bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20"
+                    : "bg-[#151b30] text-[#5a6380] border border-[#1c2340]"
                 }`}
                 title={health.postgres ? "PostgreSQL connected" : "Using SQLite"}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${health.postgres ? 'bg-[#34D399]' : 'bg-[#D1D5DB]'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${health.postgres ? 'bg-[#34d399]' : 'bg-[#5a6380]'}`} />
                 <Database className="w-3 h-3" />
                 {health.postgres ? "PostgreSQL" : "SQLite"}
               </span>
               <span
                 className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg font-medium ${
                   health.ollama
-                    ? "bg-[#E0E7FF]/60 text-[#4F46E5] border border-[#C7D2FE]"
-                    : "bg-[#F1F5F9] text-[#9CA3AF] border border-[#E5E7EB]"
+                    ? "bg-[#4f8fff]/10 text-[#4f8fff] border border-[#4f8fff]/20"
+                    : "bg-[#151b30] text-[#5a6380] border border-[#1c2340]"
                 }`}
                 title={health.ollama ? "Ollama (local LLM) running" : "Using Gemini API"}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${health.ollama ? 'bg-[#818CF8]' : 'bg-[#D1D5DB]'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${health.ollama ? 'bg-[#4f8fff]' : 'bg-[#5a6380]'}`} />
                 <Cpu className="w-3 h-3" />
                 {health.ollama ? "Ollama" : "Gemini"}
               </span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-[11px] text-[#6B7280] bg-[#F8FAFC] px-3 py-1.5 rounded-lg border border-[#E5E7EB] font-medium">
-            <Database className="w-3.5 h-3.5 text-[#A5B4FC]" />
+          <div className="flex items-center gap-2 text-[11px] text-[#8b95b0] bg-[#080c18] px-3 py-1.5 rounded-lg border border-[#1c2340] font-medium">
+            <Database className="w-3.5 h-3.5 text-[#4f8fff]" />
             <span className="max-w-[140px] truncate">
               {uploadedFile ? uploadedFile : "Sample Business Data"}
             </span>
           </div>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 text-[#9CA3AF] hover:text-[#1F2937] rounded-lg hover:bg-[#F1F5F9] transition-all duration-200 lg:hidden"
+            className="p-2 text-[#5a6380] hover:text-white rounded-lg hover:bg-[#151b30] transition-all duration-200 lg:hidden"
           >
             {sidebarCollapsed ? (
               <PanelLeftOpen className="w-4 h-4" />
@@ -255,14 +255,14 @@ export default function Home() {
       <div className="flex-1 flex overflow-hidden">
         {/* Chat Sidebar */}
         <div
-          className={`flex-shrink-0 border-r border-[#E5E7EB] bg-white flex flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`flex-shrink-0 border-r border-[#1c2340] bg-[#080c18] flex flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             sidebarCollapsed
               ? "w-0 overflow-hidden"
               : "w-full lg:w-[360px]"
           }`}
         >
           {/* File Upload Area */}
-          <div className="flex-shrink-0 p-3.5 border-b border-[#E5E7EB]">
+          <div className="flex-shrink-0 p-3.5 border-b border-[#1c2340]">
             <FileUpload
               onUploadComplete={handleUploadComplete}
               currentFile={uploadedFile}

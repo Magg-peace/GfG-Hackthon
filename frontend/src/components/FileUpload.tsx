@@ -51,15 +51,15 @@ export default function FileUpload({
 
   if (currentFile) {
     return (
-      <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#ECFDF5] border border-[#BBF7D0] rounded-xl">
-        <div className="w-6 h-6 rounded-lg bg-[#BBF7D0]/50 flex items-center justify-center flex-shrink-0">
-          <CheckCircle className="w-3.5 h-3.5 text-[#059669]" />
+      <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#34d399]/5 border border-[#34d399]/12 rounded-xl">
+        <div className="w-6 h-6 rounded-lg bg-[#34d399]/10 flex items-center justify-center flex-shrink-0">
+          <CheckCircle className="w-3.5 h-3.5 text-[#34d399]" />
         </div>
-        <FileSpreadsheet className="w-3.5 h-3.5 text-[#059669]/70 flex-shrink-0" />
-        <span className="text-[11px] text-[#059669] truncate font-medium">{currentFile}</span>
+        <FileSpreadsheet className="w-3.5 h-3.5 text-[#34d399]/70 flex-shrink-0" />
+        <span className="text-[11px] text-[#34d399] truncate font-medium">{currentFile}</span>
         <button
           onClick={onClearSession}
-          className="ml-auto flex-shrink-0 text-[#9CA3AF] hover:text-[#1F2937] transition-colors p-0.5 rounded hover:bg-[#F1F5F9]"
+          className="ml-auto flex-shrink-0 text-[#5a6380] hover:text-white transition-colors p-0.5 rounded hover:bg-[#151b30]"
           title="Switch to default dataset"
         >
           <X className="w-3.5 h-3.5" />
@@ -74,27 +74,27 @@ export default function FileUpload({
         {...getRootProps()}
         className={`border border-dashed rounded-xl px-3 py-3.5 text-center cursor-pointer transition-all duration-300 ${
           isDragActive
-            ? "border-[#A5B4FC]/60 bg-[#EEF2FF] shadow-[0_0_30px_rgba(165,180,252,0.12)]"
-            : "border-[#E5E7EB] hover:border-[#C7D2FE] bg-[#F8FAFC] hover:bg-[#F1F5F9]"
+            ? "border-[#4f8fff]/40 bg-[#4f8fff]/5 shadow-[0_0_30px_rgba(79,143,255,0.08)]"
+            : "border-[#1c2340] hover:border-[#4f8fff]/20 bg-[#0c1021] hover:bg-[#0e1225]"
         } ${isUploading ? "pointer-events-none opacity-50" : ""}`}
       >
         <input {...getInputProps()} />
         {isUploading ? (
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="w-5 h-5 text-[#818CF8] animate-spin" />
-            <p className="text-[11px] text-[#9CA3AF]">Uploading & processing...</p>
+            <Loader2 className="w-5 h-5 text-[#4f8fff] animate-spin" />
+            <p className="text-[11px] text-[#5a6380]">Uploading & processing...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] flex items-center justify-center">
-              <Upload className="w-4 h-4 text-[#818CF8]" />
+            <div className="w-8 h-8 rounded-lg bg-[#151b30] flex items-center justify-center">
+              <Upload className="w-4 h-4 text-[#4f8fff]" />
             </div>
-            <p className="text-[11px] text-[#6B7280]">
+            <p className="text-[11px] text-[#8b95b0]">
               {isDragActive
                 ? "Drop your CSV here"
                 : "Upload CSV to analyze your own data"}
             </p>
-            <p className="text-[9px] text-[#9CA3AF]">Max 50MB</p>
+            <p className="text-[9px] text-[#5a6380]">Max 50MB</p>
           </div>
         )}
       </div>
