@@ -14,6 +14,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _escape_for_format(text: str) -> str:
+    """Escape curly braces in text so it's safe to embed in a .format() template."""
+    return text.replace("{", "{{").replace("}", "}}")
+
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180"))
 
@@ -421,7 +426,7 @@ async def generate_sql(query: str, schema: str, dialect: str = "PostgreSQL") -> 
     if relevance_err:
         return {"thinking": "Query is not related to the available data.", "sql": "", "error": relevance_err}
 
-    system = _SQL_SYSTEM.format(schema=schema, dialect=dialect)
+    system = _SQL_SYSTEM.format(schema=_escape_for_format(schema), dialect=dialect)
     model = _pick_model(_SQL_MODEL_CHAIN, OLLAMA_SQL_MODEL)
 
     if model:
@@ -536,10 +541,10 @@ async def generate_followup_sql(
         return {"thinking": "Follow-up query is not related to the available data.", "charts": [], "summary": "", "assumptions": [], "error": relevance_err}
 
     system = _FOLLOWUP_SYSTEM.format(
-        previous_query=previous_query,
-        previous_sql=previous_sql,
-        followup=followup,
-        schema=schema,
+        previous_query=_escape_for_format(previous_query),
+        previous_sql=_escape_for_format(previous_sql),
+        followup=_escape_for_format(followup),
+        schema=_escape_for_format(schema),
         dialect=dialect,
     )
     model = _pick_model(_SQL_MODEL_CHAIN, OLLAMA_SQL_MODEL)
@@ -661,7 +666,7 @@ async def explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
     Returns: {"title": ..., "description": ..., "key_columns": [...], "suggested_questions": [...], "error": ...}
     """
     sample_preview = json.dumps(sample_rows[:5], default=str, indent=2)
-    system = _EXPLAIN_SYSTEM.format(schema=schema, sample=sample_preview)
+    system = _EXPLAIN_SYSTEM.format(schema=_escape_for_format(schema), sample=_escape_for_format(sample_preview))
     model = _pick_model(_VIZ_MODEL_CHAIN, OLLAMA_VIZ_MODEL)
 
     if model:
@@ -711,7 +716,7 @@ async def _gemini_explain_dataset(schema: str, sample_rows: list[dict]) -> dict:
     from google import genai
     client = _get_gemini_client()
     sample_preview = json.dumps(sample_rows[:5], default=str, indent=2)
-    prompt = _EXPLAIN_SYSTEM.format(schema=schema, sample=sample_preview) + "\n\nExplain this dataset."
+    prompt = _EXPLAIN_SYSTEM.format(schema=_escape_for_format(schema), sample=_escape_for_format(sample_preview)) + "\n\nExplain this dataset."
     resp = client.models.generate_content(
         model="gemini-2.0-flash",
         contents=[genai.types.Content(role="user", parts=[genai.types.Part(text=prompt)])],

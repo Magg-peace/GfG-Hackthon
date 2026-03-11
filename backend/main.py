@@ -303,7 +303,17 @@ async def query_dashboard(req: QueryRequest):
         raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return a user-friendly error instead of crashing
+        error_msg = str(e)
+        if "bad escape" in error_msg or "re.error" in error_msg:
+            error_msg = "An internal error occurred while processing your query. Please try rephrasing your question."
+        return {
+            "success": False,
+            "session_id": req.session_id or str(uuid.uuid4()),
+            "error": error_msg,
+            "summary": f"Sorry, something went wrong: {error_msg}",
+            "charts": [],
+        }
 
 
 @app.post("/api/followup")
@@ -351,7 +361,16 @@ async def followup_query(req: FollowUpRequest):
 
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        if "bad escape" in error_msg or "re.error" in error_msg:
+            error_msg = "An internal error occurred while processing your query. Please try rephrasing your question."
+        return {
+            "success": False,
+            "session_id": req.session_id,
+            "error": error_msg,
+            "summary": f"Sorry, something went wrong: {error_msg}",
+            "charts": [],
+        }
 
 
 @app.post("/api/upload")

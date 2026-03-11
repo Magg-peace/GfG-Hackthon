@@ -195,11 +195,15 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight leading-none">
+<<<<<<< HEAD
               <span className="bg-gradient-to-r from-[#6366F1] via-[#818CF8] to-[#A5B4FC] bg-clip-text text-transparent">InsightAI</span>
+=======
+              <span className="bg-gradient-to-r from-[#4f8fff] via-[#7dd3fc] to-[#34d399] bg-clip-text text-transparent">VizPulse</span>
+>>>>>>> 00b8c8d0ec96817f0f2d88541d2939791ca00062
             </h1>
             <p className="text-[10px] text-[#9CA3AF] mt-0.5 tracking-widest uppercase font-medium">
               Conversational Business Intelligence
-            </p>
+            </p>  
           </div>
         </div>
         <div className="flex items-center gap-2.5">
