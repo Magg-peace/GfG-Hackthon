@@ -43,18 +43,18 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
   if (!charts.length) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-8">
-        <div className="w-20 h-20 rounded-2xl bg-[#0e1225] border border-[#1c2340] flex items-center justify-center mb-5 animate-float">
-          <LayoutDashboard className="w-9 h-9 text-[#2a3355]" />
+        <div className="w-20 h-20 rounded-2xl bg-[#F1F5F9] border border-[#E5E7EB] flex items-center justify-center mb-5 animate-float shadow-md">
+          <LayoutDashboard className="w-9 h-9 text-[#C7D2FE]" />
         </div>
-        <h2 className="text-lg font-semibold text-[#8b95b0] mb-2">
+        <h2 className="text-lg font-semibold text-[#1F2937] mb-2">
           Your dashboard will appear here
         </h2>
-        <p className="text-sm text-[#5a6380] max-w-sm leading-relaxed">
+        <p className="text-sm text-[#6B7280] max-w-sm leading-relaxed">
           Ask a question in the chat panel to generate interactive charts and
           visualizations from your data.
         </p>
-        <div className="mt-6 flex items-center gap-2 text-[10px] text-[#5a6380] bg-[#0e1225] px-3 py-1.5 rounded-lg border border-[#1c2340]">
-          <Sparkles className="w-3 h-3 text-[#4f8fff]/40" />
+        <div className="mt-6 flex items-center gap-2 text-[10px] text-[#6B7280] bg-white px-3 py-1.5 rounded-lg border border-[#E5E7EB] shadow-sm">
+          <Sparkles className="w-3 h-3 text-[#A5B4FC]" />
           Powered by AI-driven analytics
         </div>
       </div>
@@ -67,12 +67,12 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
       {summary && (
         <div className="insight-card px-5 py-4 animate-fade-in">
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4f8fff]/15 to-[#8b5cf6]/10 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-              <Sparkles className="w-4 h-4 text-[#4f8fff]" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A5B4FC]/30 to-[#93C5FD]/20 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <Sparkles className="w-4 h-4 text-[#6366F1]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="section-label text-[#4f8fff]/70 mb-1.5">AI Insight</p>
-              <p className="text-[13px] text-[#c4ccdf] leading-relaxed">{summary}</p>
+              <p className="section-label text-[#818CF8] mb-1.5">AI Insight</p>
+              <p className="text-[13px] text-[#374151] leading-relaxed">{summary}</p>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
       <div>
         <div className="flex items-center justify-between mb-4">
           <p className="section-label">Visualizations</p>
-          <span className="text-[10px] text-[#5a6380] bg-[#0e1225] px-2 py-0.5 rounded-md border border-[#1c2340]">
+          <span className="text-[10px] text-[#6B7280] bg-white px-2 py-0.5 rounded-md border border-[#E5E7EB] shadow-sm">
             {charts.length} chart{charts.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -103,13 +103,13 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
       </div>
 
       {/* 3. Export Options — Bottom action bar */}
-      <div className="flex items-center justify-between pt-2 border-t border-[#1c2340]/40 animate-fade-in">
+      <div className="flex items-center justify-between pt-2 border-t border-[#E5E7EB] animate-fade-in">
         <p className="section-label">Export Report</p>
         <div className="flex gap-2">
           <button
             onClick={() => handleExport("pdf")}
             disabled={!!exporting}
-            className="group flex items-center gap-2 px-4 py-2 bg-[#0e1225] hover:bg-[#151b30] text-[#e87171] border border-[#e87171]/15 hover:border-[#e87171]/30 rounded-xl text-xs font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#e87171]/5 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
+            className="group flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#FEF2F2] text-[#EF4444] border border-[#FECACA] hover:border-[#EF4444]/30 rounded-xl text-xs font-medium transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 shadow-sm"
             title="Export as PDF"
           >
             {exporting === "pdf" ? (
@@ -122,7 +122,7 @@ export default function Dashboard({ charts, summary, sessionId, lastQuery }: Das
           <button
             onClick={() => handleExport("excel")}
             disabled={!!exporting}
-            className="group flex items-center gap-2 px-4 py-2 bg-[#0e1225] hover:bg-[#151b30] text-[#34d399] border border-[#34d399]/15 hover:border-[#34d399]/30 rounded-xl text-xs font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#34d399]/5 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
+            className="group flex items-center gap-2 px-4 py-2 bg-white hover:bg-[#F0FDF4] text-[#059669] border border-[#BBF7D0] hover:border-[#34D399]/50 rounded-xl text-xs font-medium transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 shadow-sm"
             title="Export as Excel"
           >
             {exporting === "excel" ? (

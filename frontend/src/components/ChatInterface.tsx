@@ -78,13 +78,13 @@ export default function ChatInterface({
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in px-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4f8fff]/12 to-[#8b5cf6]/10 flex items-center justify-center mb-4 shadow-lg shadow-[#4f8fff]/5 border border-[#4f8fff]/10">
-              <Sparkles className="w-7 h-7 text-[#4f8fff]" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#A5B4FC]/20 to-[#93C5FD]/15 flex items-center justify-center mb-4 shadow-md border border-[#C7D2FE]/30">
+              <Sparkles className="w-7 h-7 text-[#6366F1]" />
             </div>
-            <h2 className="text-base font-semibold text-white mb-1.5 tracking-tight">
+            <h2 className="text-base font-semibold text-[#1F2937] mb-1.5 tracking-tight">
               Ask anything about your data
             </h2>
-            <p className="text-[#5a6380] text-xs max-w-[260px] mb-6 leading-relaxed">
+            <p className="text-[#9CA3AF] text-xs max-w-[260px] mb-6 leading-relaxed">
               Type a question in plain English and I&apos;ll generate interactive
               charts and insights.
             </p>
@@ -98,9 +98,9 @@ export default function ChatInterface({
                   <button
                     key={i}
                     onClick={() => handleSuggestionClick(s)}
-                    className="w-full text-left px-3.5 py-3 rounded-xl bg-[#0e1225] border border-[#1c2340] hover:border-[#4f8fff]/25 hover:bg-[#131830] transition-all duration-300 text-xs text-[#8b95b0] hover:text-white group"
+                    className="w-full text-left px-3.5 py-3 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] hover:border-[#C7D2FE] hover:bg-[#EEF2FF]/50 transition-all duration-300 text-xs text-[#6B7280] hover:text-[#1F2937] group shadow-sm"
                   >
-                    <Sparkles className="w-3 h-3 inline mr-2 text-[#4f8fff]/40 group-hover:text-[#4f8fff] transition-colors" />
+                    <Sparkles className="w-3 h-3 inline mr-2 text-[#C7D2FE] group-hover:text-[#818CF8] transition-colors" />
                     {s}
                   </button>
                 ))}
@@ -117,23 +117,23 @@ export default function ChatInterface({
             }`}
           >
             {msg.role === "assistant" && (
-              <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-[#4f8fff]/15 to-[#6366f1]/10 flex items-center justify-center mt-0.5 border border-[#4f8fff]/10">
-                <Bot className="w-3.5 h-3.5 text-[#4f8fff]" />
+              <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-[#A5B4FC]/25 to-[#818CF8]/15 flex items-center justify-center mt-0.5 border border-[#C7D2FE]/30">
+                <Bot className="w-3.5 h-3.5 text-[#6366F1]" />
               </div>
             )}
             <div
               className={`max-w-[82%] rounded-2xl px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-gradient-to-br from-[#4f8fff] to-[#3a7bf5] text-white shadow-lg shadow-[#4f8fff]/15"
+                  ? "bg-gradient-to-br from-[#A5B4FC] to-[#818CF8] text-white shadow-md shadow-[#A5B4FC]/20"
                   : msg.isError
-                  ? "bg-[#f87171]/5 border border-[#f87171]/20 text-[#fca5a5]"
-                  : "bg-[#0e1225] border border-[#1c2340] text-[#c4ccdf] shadow-lg shadow-black/15"
+                  ? "bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B]"
+                  : "bg-white border border-[#E5E7EB] text-[#374151] shadow-md shadow-black/[0.03]"
               }`}
             >
               {msg.isError && (
                 <div className="flex items-center gap-2 mb-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-[#f87171]" />
-                  <span className="text-[10px] font-semibold text-[#f87171] uppercase tracking-wide">Error</span>
+                  <AlertCircle className="w-3.5 h-3.5 text-[#EF4444]" />
+                  <span className="text-[10px] font-semibold text-[#EF4444] uppercase tracking-wide">Error</span>
                 </div>
               )}
               <div className="chat-message text-[13px] whitespace-pre-wrap leading-relaxed">
@@ -141,22 +141,22 @@ export default function ChatInterface({
               </div>
               {msg.thinking && (
                 <details className="mt-2.5">
-                  <summary className="text-[11px] text-[#5a6380] cursor-pointer hover:text-[#8b95b0] transition-colors">
+                  <summary className="text-[11px] text-[#9CA3AF] cursor-pointer hover:text-[#6B7280] transition-colors">
                     <ChevronDown className="w-3 h-3 inline mr-1" />
                     Reasoning
                   </summary>
-                  <p className="text-[11px] text-[#5a6380] mt-1.5 pl-2.5 border-l-2 border-[#1c2340] leading-relaxed">
+                  <p className="text-[11px] text-[#9CA3AF] mt-1.5 pl-2.5 border-l-2 border-[#E5E7EB] leading-relaxed">
                     {msg.thinking}
                   </p>
                 </details>
               )}
               {msg.assumptions && msg.assumptions.length > 0 && (
-                <div className="mt-2 text-[11px] text-[#fbbf24]/70">
+                <div className="mt-2 text-[11px] text-[#D97706]">
                   <span className="font-medium">Assumptions: </span>
                   {msg.assumptions.join("; ")}
                 </div>
               )}
-              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-white/40' : 'text-[#5a6380]'}`}>
+              <div className={`text-[9px] mt-1.5 ${msg.role === 'user' ? 'text-white/50' : 'text-[#9CA3AF]'}`}>
                 {msg.timestamp.toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -164,8 +164,8 @@ export default function ChatInterface({
               </div>
             </div>
             {msg.role === "user" && (
-              <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#151b30] border border-[#1c2340] flex items-center justify-center mt-0.5">
-                <User className="w-3.5 h-3.5 text-[#8b95b0]" />
+              <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#F1F5F9] border border-[#E5E7EB] flex items-center justify-center mt-0.5">
+                <User className="w-3.5 h-3.5 text-[#6B7280]" />
               </div>
             )}
           </div>
@@ -173,18 +173,18 @@ export default function ChatInterface({
 
         {isLoading && (
           <div className="flex gap-2.5 animate-fade-in">
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-[#4f8fff]/15 to-[#6366f1]/10 flex items-center justify-center border border-[#4f8fff]/10">
-              <Bot className="w-3.5 h-3.5 text-[#4f8fff]" />
+            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gradient-to-br from-[#A5B4FC]/25 to-[#818CF8]/15 flex items-center justify-center border border-[#C7D2FE]/30">
+              <Bot className="w-3.5 h-3.5 text-[#6366F1]" />
             </div>
-            <div className="bg-[#0e1225] border border-[#1c2340] rounded-2xl px-4 py-3.5 shadow-lg shadow-black/15">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl px-4 py-3.5 shadow-md shadow-black/[0.03]">
               <div className="flex items-center gap-2.5">
                 <div className="flex gap-1">
                   <span className="typing-dot" />
                   <span className="typing-dot" />
                   <span className="typing-dot" />
                 </div>
-                <span className="text-[12px] text-[#5a6380]">
-                  Generating insights...
+                <span className="text-[12px] text-[#9CA3AF]">
+                  InsightAI is analyzing your data...
                 </span>
               </div>
               <div className="mt-3 space-y-2">
@@ -201,13 +201,13 @@ export default function ChatInterface({
 
       {/* Suggestion pills (shown after messages exist) */}
       {messages.length > 0 && showSuggestions && suggestions.length > 0 && (
-        <div className="px-4 py-2 flex gap-2 overflow-x-auto border-t border-[#1c2340]/30">
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto border-t border-[#E5E7EB]">
           {suggestions.slice(0, 3).map((s, i) => (
             <button
               key={i}
               onClick={() => handleSuggestionClick(s)}
               disabled={isLoading}
-              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-[#0e1225] border border-[#1c2340] text-[#5a6380] hover:text-white hover:border-[#4f8fff]/25 transition-all duration-300 disabled:opacity-40"
+              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] hover:text-[#1F2937] hover:border-[#C7D2FE] hover:bg-[#EEF2FF]/50 transition-all duration-300 disabled:opacity-40"
             >
               {s.length > 50 ? s.slice(0, 50) + "..." : s}
             </button>
@@ -216,8 +216,8 @@ export default function ChatInterface({
       )}
 
       {/* Input Area */}
-      <div className="border-t border-[#1c2340]/50 px-3.5 py-3.5 bg-[#080c18]">
-        <div className="flex items-end gap-2.5 bg-[#0c1021] border border-[#1c2340] rounded-xl px-3.5 py-2.5 focus-within:border-[#4f8fff]/40 focus-within:shadow-[0_0_20px_rgba(79,143,255,0.06)] transition-all duration-300">
+      <div className="border-t border-[#E5E7EB] px-3.5 py-3.5 bg-white">
+        <div className="flex items-end gap-2.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3.5 py-2.5 focus-within:border-[#A5B4FC] focus-within:shadow-[0_0_0_3px_rgba(165,180,252,0.15)] transition-all duration-300">
           <textarea
             ref={inputRef}
             value={input}
@@ -225,18 +225,18 @@ export default function ChatInterface({
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about your data..."
             rows={1}
-            className="flex-1 bg-transparent text-white placeholder-[#3a4460] text-[13px] resize-none outline-none max-h-[100px] leading-relaxed"
+            className="flex-1 bg-transparent text-[#1F2937] placeholder-[#D1D5DB] text-[13px] resize-none outline-none max-h-[100px] leading-relaxed"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#4f8fff] hover:bg-[#3a7bf5] disabled:bg-[#151b30] disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-[#4f8fff]/20 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+            className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#A5B4FC] to-[#818CF8] hover:from-[#818CF8] hover:to-[#6366F1] disabled:from-[#E5E7EB] disabled:to-[#E5E7EB] disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 hover:shadow-md hover:shadow-[#A5B4FC]/25 hover:-translate-y-0.5 disabled:hover:translate-y-0"
           >
             <Send className="w-3.5 h-3.5 text-white" />
           </button>
         </div>
-        <p className="text-[9px] text-[#3a4460] mt-2 text-center tracking-wide">
+        <p className="text-[9px] text-[#D1D5DB] mt-2 text-center tracking-wide">
           Powered by Google Gemini · Real-time chart generation
         </p>
       </div>
